@@ -17,7 +17,7 @@
   \and
   Hanrui Fan
 }
-\date{Tuesday, March 16, 2021}
+\date{Tuesday, March 14, 2021}
 
 \begin{document}
 \maketitle
@@ -44,7 +44,7 @@
 \begin{enumerate}
     \item \textbf{General Introduction to Graph Implementation}
     
-    \quad We will use a graph structure to represent the collection of anime in our database, as well as a similarity score for each edge of the graph. The model will be initialized using ~20,000 anime data taken from the Manami database. Each anime from the Manami database contains one or more “tags” that label the sub-genre, topic, and theme. We will create a function that reads through all 31,166 animes from the Manami database and determines 20 related anime for each anime based on the tags and similarity. Each anime and their related anime, as well as their corresponding tags, will be saved into a \textbf{JSON} file to be processed prior to the production stage. This shortens the time needed to construct the graph for users.
+    \quad We will use a graph structure to represent the collection of anime in our database, as well as a similarity score for each edge of the graph. The model will be initialized using more than 30,000 anime data taken from the Manami database. Each anime from the Manami database contains one or more “tags” that label the sub-genre, topic, and theme. We will create a function that reads through all 31,166 animes from the Manami database and determines 20 related anime for each anime based on the tags and similarity. Each anime and their related anime, as well as their corresponding tags, will be saved into a \textbf{JSON} file to be processed prior to the production stage. This shortens the time needed to construct the graph for users.
     
     \quad Each vertex in the graph represents a single anime. We will create a custom class “Anime” that contains a string of an anime’s name, and a list of values representing the relevance of each “tag” for that particular anime (the relevance are ordered in a way such that all they represent the tags in a certain order defined by us). The similarity of the anime with other anime can be seen as the dot product of their ‘tag vectors’ which can be calculated using either self-defined functions or through \textbf{\textbf{NumPy}}’s dot product function. The initial weight of the tags will be the same for all tags. However, as users provide feedback on their preferences of the recommendations, the program would automatically adjust the weighting of each tag using vector normalization. An anime’s neighbours can thus be thought of as those vertices whose similarities with the initial vertex is greater than a predefined threshold. To simplify the process of visualization, our implementation states that a vertex can have a maximum of twenty neighbours.
     
