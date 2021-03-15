@@ -1,8 +1,10 @@
 pyta_report.html
 .pytest_cache
 __pycache__
-.aux
-.fdb_latexmk
-.fls
-.log
-.pdf
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.bbl
+*.blg
+*.out
