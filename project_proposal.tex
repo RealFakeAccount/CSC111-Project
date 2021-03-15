@@ -64,9 +64,9 @@
     
     \item \textbf{Technical Requirement}
     
-    \quad \textbf{JSON} is a format that provides lightweight data interchange originated from \textbf{JavaScript} \citep{JSON21}. For all the animation data from the Manami database, we will import the python library version of \textbf{JSON} to exchange and store it \citep{Pyjson}. We initially wanted to use \textbf{CSV} to handle the data, but we want to handle all the similarity data between nodes. Compared to \textbf{CSV} processing, \textbf{JSON} can handle a large amount of data at the same time. Also \textbf{JSON} shows better hierarchical and other relational data, i.e. \textbf{JSON} can contain nested structures which are not compatible in \textbf{CSV} \citep{vs21}.
-    
-    \quad \textbf{Pandas} is a Python library written for data manipulation and analysis \citep{Pan21}. Also, in order to pass data to create visualization. We decided to use \textbf{pandas} for \textbf{JSON} reading and provide data to graph the relationship between nodes. To be specific, we will use the function \texttt{read\_json()} and its data structure \texttt{DataFrame} in order to provide data for the python library \textbf{Plotly} and \textbf{\textbf{Dash}} that we will later discuss.
+    \quad \textbf{JSON} is a format that provides lightweight data interchange originated from \textbf{JavaScript} \citep{JSON21}. For all the animation data from the Manami database, we will import the python library version of \textbf{JSON} to exchange and store it \citep{Pyjson}. 
+
+    \quad \textbf{Pandas} is a Python library written for data manipulation and analysis \citep{Pan21}. Also, in order to pass data to create visualization. We decided to use \textbf{pandas} for \textbf{JSON} reading and provide data to graph the relationship between nodes.
     
     \quad \textbf{NumPy} is a Python library that assists scientific calculation \citep{Pynpy}. In particular, we use \textbf{NumPy} to do vector dot products and normalizations, to update similarity (our most important feature) between nodes.
     
