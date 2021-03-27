@@ -2,6 +2,7 @@ import dash
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
+from dash_html_components.Label import Label
 from plotly.graph_objs import Scatter, Figure
 import plotly.express as px
 
@@ -25,11 +26,18 @@ ele = [
     html.Label("Text Input"),
     dcc.Input(id = "name", value = "Oregairu", type = "text"),
 
+    # slider
+    html.Label('Slider'),
+    dcc.Slider(min = 1, max = 5, marks = [str(i) for i in range(1, 6)], value = 5), 
+
     # Graph
     dcc.Graph(
         id = "connection-graph",
         Figure = graph_figure()
     )
+
+    # Anime description
+    html.Label()
 ]
 app.layout = html.Div(children=ele)
 
