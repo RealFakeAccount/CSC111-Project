@@ -62,6 +62,18 @@ class Graph:
             anime.set_tag_weighting(tag, ...)
         else:
             anime.set_tag_weighting(tag, ...)
+    
+    def calculate_neighbours(self) -> None:
+        """Add the neighbours for each anime.
+
+        Warning: this method uses heavy computation and initializes the edges between anime.
+        It is not meant to be accessible when the user's session is ongoing, and should only be
+        used when the user quits their session.
+        """
+        # This method might come in handy for get_related_anime
+        for anime in self._anime.values():
+            if len(anime.neighbours) < ...:
+                ...
 
 
 def load_anime_graph(file_name: str) -> Graph:
