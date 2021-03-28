@@ -26,16 +26,16 @@ class Anime:
     url: str
     thumbnail: str
     score: float
-    detail: str  # introduction to the anime
-    _tags: dict[str, float]  # tag: weighting(0-1)
+    detail: str
+    _tags: dict[str, float]
 
-    def __init__(self, data: dict[str, Union[str, float, dict[str, float]]]):
+    def __init__(self, data: dict[str, Union[str, float, list[str]]]):
         self.title = data['title']
         self.url = data['url']
         self.thumbnail = data['thumbnail']
         self.score = data['score']
         self.detail = data['detail']
-        self._tags = data['tags']
+        # self._tags = data['tags']
 
     def calculate_similarity(self, anime: Anime) -> float:
         """Calculate the similarity between this anime and the given anime

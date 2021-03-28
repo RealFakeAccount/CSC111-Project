@@ -22,7 +22,7 @@ class Graph:
     def __init__(self) -> None:
         self._anime = {}
 
-    def add_anime(self, title: str, data: dict[str, Union[str, float, dict[str, float]]]) -> None:
+    def add_anime(self, title: str, data: dict[str, Union[str, float, list[str]]]) -> None:
         """Add an anime into this graph
         """
         if title not in self._anime:
