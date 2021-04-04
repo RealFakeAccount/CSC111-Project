@@ -11,12 +11,13 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 
 def graph_figure() -> Figure():
-    """create a figure object based on given variables. 
+    """create a figure object based on given variables.
     See a3_visualization.py for examples.
-    The following code is just a example and (TODO) SHOULD be modified 
+    The following code is just a example and (TODO) SHOULD be modified
     """
-    fig = px.line(x=["a","b","c"], y=[1,3,2], title="sample figure")
+    fig = Figure(data=px.line(x=["a","b","c"], y=[1,3,2], title="sample figure"))  # Correct Example
     return fig
+
 
 ele = [
     # Title
@@ -24,17 +25,17 @@ ele = [
 
     # Text Input
     html.Label("Text Input"),
-    dcc.Input(id = "name", value = "Oregairu", type = "text"),
+    dcc.Input(id="name", value="Oregairu", type="text"),
 
     # slider
-    html.Label('Slider'),
-    dcc.Slider(min = 1, max = 5, marks = [str(i) for i in range(1, 6)], value = 5), 
+    html.Label('Slider of Depth'),
+    dcc.Slider(id="depth", value=5, min=1, max=5, step=1, marks={i: str(i) for i in range(1, 6)}),
 
     # Graph
     dcc.Graph(
-        id = "connection-graph",
-        Figure = graph_figure()
-    )
+        id="connection-graph",
+        figure=graph_figure()  # TODO: Need to be modified after updating
+    ),
 
     # Anime description
     html.Label()
