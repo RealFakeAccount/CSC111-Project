@@ -1,3 +1,3 @@
 # CSC111-Project
 
-WIP
+Data retrieved and modified from https://github.com/manami-project/anime-offline-database

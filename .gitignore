@@ -1,5 +1,6 @@
 pyta_report.html
 .pytest_cache
+.idea
 __pycache__
 *.aux
 *.fdb_latexmk
