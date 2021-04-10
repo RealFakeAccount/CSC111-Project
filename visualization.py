@@ -5,19 +5,10 @@ import dash_html_components as html
 from dash_html_components.Label import Label
 from plotly.graph_objs import Scatter, Figure
 import plotly.express as px
+import Graph
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-
-
-def graph_figure() -> Figure():
-    """create a figure object based on given variables.
-    See a3_visualization.py for examples.
-    The following code is just a example and (TODO) SHOULD be modified
-    """
-    fig = Figure(data=px.line(x=["a","b","c"], y=[1,3,2], title="sample figure"))  # Correct Example
-    return fig
-
 
 ele = [
     # Title
@@ -34,24 +25,28 @@ ele = [
     # Graph
     dcc.Graph(
         id="connection-graph",
-        figure=graph_figure()  # TODO: Need to be modified after updating
+        figure=Graph().draw_graph("Oregairu", 1) 
+        # figure = Figure(data=px.line(x=["a","b","c"], y=[1,3,2], title="sample figure"))
     ),
 
     # Anime description
-    html.Label()
+    html.Label("Anime Description"),
+    dcc.Markdown(id="description", children = Graph().get_anime_description("Oregairu"))
 ]
 app.layout = html.Div(children=ele)
 
 
 
 @app.callback(
-    Input(component_id="name", component_property="value")
+    Input("name", "value"),
+    Input("depth", "value"),
+    Output("connection-graph", "figure"),
+    Output("description", "value")
 )
-def update_using_input_name(value):
-    '''TODO: change the graph and whatever based on the user input
-
+def update_graph(name, depth):
+    '''change the graph and whatever based on the user input
     '''
-    ...
+    return Graph().draw_graph(name, depth), Graph().get_anime_description(name)
 
 
 if __name__ == '__main__':
