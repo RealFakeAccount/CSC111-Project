@@ -27,6 +27,12 @@ class Graph:
         """
         if title not in self._anime:
             self._anime[title] = Anime(data)
+    
+    def get_anime_description(self, title: str) -> str:
+        """ return the name of one anime.
+        return an empty string if not found
+        """
+        return self._anime.get(title, "")
 
     def get_similarity(self, anime1: str, anime2: str) -> float:
         """Return the similarity between anime1 and anime2.
