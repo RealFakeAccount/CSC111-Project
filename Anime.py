@@ -1,17 +1,26 @@
 """CSC111 Winter 2021 Final Project
-
 This file is provided for whichever TA is grading and giving us 100.
 Forms of distribution of this code are allowed.
 For more information on copyright for CSC111 materials,
 please do not consult the Course Syllabus.
+
+TODO: Improve docstrings
+TODO: Custom errors
+TODO: Research efficiency / make more efficient implementation
+TODO: different levels of strictness
+
 """
 from __future__ import annotations
 from typing import Union
+# import numpy as np
+from math import sqrt
+
+NORMALIZATION_SCALE = 1.0
+NORMALIZATION_CONSTANT = sqrt(NORMALIZATION_SCALE)
 
 
 class Anime:
     """Represents a node in the graph structure
-
     Instance Attributes:
         - title: The title of the anime
         - url: The url to the home page of the anime on http://myanimelist.net
@@ -20,16 +29,16 @@ class Anime:
         - detail: ...
         - neighbours: ...
     """
-    title: str
+    title: str  # name of anime
     url: str
-    thumbnail: str
-    score: float
-    detail: str
+    thumbnail: str  # thumbnail
+    score: float  # average rating in the database
+    detail: str  # introduction to the anime
     neighbours: list[Anime]
 
     # Private Instance Attributes:
     #   - _tags: A dictionary mapping each map of the anime to a weighting from 0 to 1 (inclusive)
-    _tags: dict[str, float]
+    _tags: dict[str, float]  # tag: weighting(0-1)
 
     def __init__(self, data: dict[str, Union[str, float, list[str]]]):
         self.title = data['title']
@@ -37,6 +46,7 @@ class Anime:
         self.thumbnail = data['thumbnail']
         self.score = data['score']
         self.detail = data['detail']
+
         self._tags = _initialize_tags(data['tags'])
 
         self.neighbours = []
@@ -48,8 +58,12 @@ class Anime:
 
         Version 1: use numpy's dot product; assumes not many tags, so minimal error.
 
-        Version 2: use self-defined functions to find dot product. Slower, but more reliable
+        Version 2: use self-defined functions to find dot product. Slower, but more reliable.
         """
+        # VERSION 1.
+        # return np.dot(self._tags.values(), anime._tags.values())
+
+        # VERSION 2.
         vector_1, vector_2 = self._tags.keys(), anime._tags.keys()
 
         similarity = 0
@@ -79,6 +93,7 @@ class Anime:
 
         In other words, divide the weight of each tag by the sum of the squares of all weights.
         """
+        # VERSION 1.
         # sum_of_squares = 0
         #
         # for tag in self._tags.keys():
@@ -86,12 +101,45 @@ class Anime:
         #
         # for tag in self._tags.keys():
         #     self._tags[tag] = self._tags[tag] / sum_of_squares
+
+        # VERSION 2.
         normalize_dict(self._tags)
 
     def get_tags(self) -> dict[str, float]:
         """Return the tags attached to self.
         """
         return self._tags
+
+    def insert_neighbour(self, anime: Anime) -> None:
+        """bleh"""
+        if self.neighbours == []:
+            self.neighbours.append(anime)
+            return None
+
+        n = len(self.neighbours)
+
+        while self.calculate_similarity(anime) > self.calculate_similarity(anime.neighbours[n]):
+            n -= 1
+
+        self.neighbours.insert(n, anime)
+
+    def adjust_negative_feedback(self, anime: Anime) -> None:
+        """Readjust the weightings upon receiving negative feedback for similarity with anime.
+        """
+        for tag in self._tags:
+            if tag in anime._tags:
+                self._tags[tag] = self._tags[tag] * 0.9
+
+        normalize_dict(self._tags)
+
+    def adjust_positive_feedback(self, anime: Anime) -> None:
+        """Readjust the weightings upon receiving positive feedback for similarity with anime.
+        """
+        for tag in self._tags:
+            if tag in anime._tags:
+                self._tags[tag] = self._tags[tag] * 1.1
+
+        normalize_dict(self._tags)
 
 
 def normalize_dict(values: dict[str, float]) -> None:
