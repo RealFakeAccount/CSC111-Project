@@ -17,7 +17,7 @@ from math import sqrt
 
 NORMALIZATION_SCALE = 1.0
 NORMALIZATION_CONSTANT = sqrt(NORMALIZATION_SCALE)
-
+NEIGHBOR_LIMIT = 5
 
 class Anime:
     """Represents a node in the graph structure
@@ -44,9 +44,10 @@ class Anime:
         self.title = data['title']
         self.url = data['url']
         self.thumbnail = data['thumbnail']
-        self.score = data['score']
-        self.detail = data['detail']
-
+        # self.score = data['score']
+        # self.score = 5.0
+        # self.detail = data['detail']
+        self.detail = ""
         self._tags = _initialize_tags(data['tags'])
 
         self.neighbours = []
@@ -112,16 +113,19 @@ class Anime:
 
     def insert_neighbour(self, anime: Anime) -> None:
         """bleh"""
-        if self.neighbours == []:
-            self.neighbours.append(anime)
-            return None
+        self.neighbours.append(anime)
+        self.neighbours.sort(key=self.calculate_similarity, reverse=True)
+        self.neighbours = self.neighbours[:NEIGHBOR_LIMIT]
+        # if self.neighbours == []:
+        #     self.neighbours.append(anime)
+        #     return None
 
-        n = len(self.neighbours)
+        # n = len(self.neighbours)
 
-        while self.calculate_similarity(anime) > self.calculate_similarity(anime.neighbours[n]):
-            n -= 1
+        # while self.calculate_similarity(anime) > self.calculate_similarity(anime.neighbours[n]) and n > 0:
+        #     n -= 1
 
-        self.neighbours.insert(n, anime)
+        # self.neighbours.insert(n, anime)
 
     def adjust_negative_feedback(self, anime: Anime) -> None:
         """Readjust the weightings upon receiving negative feedback for similarity with anime.
