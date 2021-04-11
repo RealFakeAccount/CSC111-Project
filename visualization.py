@@ -25,7 +25,7 @@ ele = [
     # Graph
     dcc.Graph(
         id="connection-graph",
-        figure=Graph().draw_graph("Oregairu", 1) 
+        figure=Graph().draw_graph("Oregairu", 1, 5) 
         # figure = Figure(data=px.line(x=["a","b","c"], y=[1,3,2], title="sample figure"))
     ),
 
@@ -46,7 +46,7 @@ app.layout = html.Div(children=ele)
 def update_graph(name, depth):
     '''change the graph and whatever based on the user input
     '''
-    return Graph().draw_graph(name, depth), Graph().get_anime_description(name)
+    return Graph().draw_graph(name, depth, 5), Graph().get_anime_description(name)
 
 
 if __name__ == '__main__':
