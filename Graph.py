@@ -9,6 +9,8 @@ import plotly
 from typing import Union, Optional
 import networkx as nx
 import json
+from multiprocessing import Pool
+import os
 
 MAX_NEIGHBOURS = 20
 
@@ -61,7 +63,7 @@ class Graph:
         else:
             raise ValueError
 
-    def add_connection(G: nx.Graph(), cur_anime_title: str, det_anime_title: str) -> None:
+    def add_connection(self, G: nx.Graph(), cur_anime_title: str, det_anime_title: str) -> None:
         """Add one egde to a given graph
         Preconditions:
             - cur_anime_tile in self._anime
@@ -70,7 +72,7 @@ class Graph:
         G.add_node(det_anime_title, kind=str)
         G.add_edge(cur_anime_title, det_anime_title)
     
-    def _get_all_edges_pos(G: nx.Graph, nxg: dict) -> tuple(list, list, tuple(list)):
+    def _get_all_edges_pos(self, G: nx.Graph, nxg: dict):
         """Get all edges position in networkx graph and return a tuple of edges position in x-y dimension
         """
         x_edge_pos = []
@@ -91,21 +93,22 @@ class Graph:
         Preconditions:
             - depth <= 5 # This will be handled by the slider on the website
         """
-        edge = dict()
+        edge = dict()  #dict[Tuple[str, str], float]
         node = dict()
 
         G = nx.Graph()
-        shell = [[anime_title]]
+        shell = [[anime_title], []] #[[center of graph], [other nodes]]
         Q = [(anime_title, 0)]
         while len(Q) != 0:
             cur = Q[0]
+            shell[1].append(cur[0])
             Q.pop(0)
             
             for i in self.get_related_anime(cur[0], limit):
                 self.add_connection(G, cur[0], i.title)
                 if cur[1] < depth: Q.append((i.title, cur[1] + 1))
             
-            shell.append([i.title for i in self.get_related_anime(cur[0], limit)])
+        print(len(shell[1]))
 
         if 1 + limit ** depth > 3:
             nxg = nx.drawing.layout.shell_layout(G, shell)
@@ -121,7 +124,7 @@ class Graph:
         nodes_trace = plotly.graph_objs.Scatter(
             x = x_node_pos,
             y = y_node_pos,
-            modes = "markers",
+            mode = "markers",
             name = "nodes",
             marker={'size': 50, 'color': 'LightSkyBlue'}
         )
@@ -139,17 +142,17 @@ class Graph:
 
         all_traces.append(edges_trace)
 
-        hover_trace = plotly.graph_objs.Scatter(
-            x = mid_pos[0],
-            y = mid_pos[1],
-            hover_text = "",#TODO
-            mode='markers',
-            hoverinfo="text",
-            marker={'size': 50, 'color': 'LightSkyBlue'}
+        # hover_trace = plotly.graph_objs.Scatter(
+        #     x = mid_pos[0],
+        #     y = mid_pos[1],
+        #     hover_text = "",#TODO
+        #     mode='markers',
+        #     hoverinfo="text",
+        #     marker={'size': 50, 'color': 'LightSkyBlue'}
 
-        )
+        # )
 
-        all_traces.append(hover_trace)
+        # all_traces.append(hover_trace)
 
         graph_layout = plotly.graph_objs.Layout(
             showlegend=False,
@@ -158,6 +161,8 @@ class Graph:
         )
         
         figure = plotly.graph_objs.Figure(data=all_traces, layout=graph_layout)
+
+        print("updated")
 
         return figure
         
@@ -242,5 +247,11 @@ def load_anime_graph(file_name: str) -> Graph:
         data = json.load(json_file)
         for title in data:
             anime_graph.add_anime(title, data[title])
+
+    cnt = 0
+    for a in anime_graph._anime.keys():
+        anime_graph.calculate_neighbours(anime_graph._anime[a])
+        cnt += 1
+        print(f"done {cnt}")
 
     return anime_graph
