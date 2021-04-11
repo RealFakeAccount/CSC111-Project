@@ -25,7 +25,6 @@ class Anime:
         - title: The title of the anime
         - url: The url to the home page of the anime on http://myanimelist.net
         - thumbnail: The url to the thumbnail of the anime
-        - score: ...
         - detail: ...
         - neighbours: ...
     """
@@ -40,12 +39,11 @@ class Anime:
     #   - _tags: A dictionary mapping each map of the anime to a weighting from 0 to 1 (inclusive)
     _tags: dict[str, float]  # tag: weighting(0-1)
 
-    def __init__(self, data: dict[str, Union[str, float, list[str]]]):
+    def __init__(self, data: dict[str, Union[str, list[str]]]):
         self.title = data['title']
         self.url = data['url']
         self.thumbnail = data['thumbnail']
-        self.score = data['score']
-        self.detail = data['detail']
+        # self.detail = data['detail']
 
         self._tags = _initialize_tags(data['tags'])
 

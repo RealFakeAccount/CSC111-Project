@@ -22,11 +22,16 @@ class Graph:
     def __init__(self) -> None:
         self._anime = {}
 
-    def add_anime(self, title: str, data: dict[str, Union[str, float, list[str]]]) -> None:
+    def add_anime(self, title: str, data: dict[str, Union[str, list[str]]]) -> None:
         """Add an anime into this graph
         """
         if title not in self._anime:
             self._anime[title] = Anime(data)
+
+    def get_all_anime(self) -> list[str]:
+        """Return a list of all the anime in this graph
+        """
+        return list(self._anime)
 
     def get_anime_description(self, title: str) -> str:
         """ return the name of one anime.
@@ -92,7 +97,7 @@ class Graph:
         else:
             self._adjust_negative_feedback(anime1, anime2)
 
-    def calculate_neighbours(self, anime: Anime, visited: Optional[set] = None) -> None:
+    def calculate_neighbours(self, anime_name: str, visited: Optional[set] = None) -> None:
         """Add the neighbours for each anime.
 
         Warning: this method uses heavy computation and initializes the edges between anime.
@@ -107,10 +112,10 @@ class Graph:
 
         for show in self._anime.values():
             if show not in visited:
-                self._insert_neighbour(anime, show)
+                self._insert_neighbour(self._anime[anime_name], show)
 
-        if len(anime.neighbours) > MAX_NEIGHBOURS:
-            anime.neighbours = anime.neighbours[:MAX_NEIGHBOURS]
+        if len(self._anime[anime_name].neighbours) > MAX_NEIGHBOURS:
+            self._anime[anime_name].neighbours = self._anime[anime_name].neighbours[:MAX_NEIGHBOURS]
 
     def _insert_neighbour(self, anime1: Anime, anime2: Anime) -> None:
         """bleh"""
@@ -147,5 +152,8 @@ def load_anime_graph(file_name: str) -> Graph:
         data = json.load(json_file)
         for title in data:
             anime_graph.add_anime(title, data[title])
+
+    for anime_name in anime_graph.get_all_anime():
+        anime_graph.calculate_neighbours(anime_name)
 
     return anime_graph
