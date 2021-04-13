@@ -22,18 +22,18 @@ ele = [
 
     # slider
     html.Label('Slider of Depth'),
-    dcc.Slider(id="depth", value=5, min=1, max=5, step=1, marks={i: str(i) for i in range(1, 6)}),
+    dcc.Slider(id="depth", value=1, min=1, max=5, step=1, marks={i: str(i) for i in range(1, 6)}),
 
     # Graph
     dcc.Graph(
         id="connection-graph",
-        figure=G.draw_graph("40MeterP: Tsuisou Youka", 1, 10) 
+        figure=G.draw_graph("40MeterP: Tsuisou Youka", 1, 10)
         # figure = Figure(data=px.line(x=["a","b","c"], y=[1,3,2], title="sample figure"))
     ),
 
     # # Anime description
     html.Label("Anime Description"),
-    dcc.Markdown(id="description", children = "")
+    dcc.Markdown(id="description", children="")
 ]
 app.layout = html.Div(children=ele)
 
@@ -46,12 +46,11 @@ app.layout = html.Div(children=ele)
     Input("depth", "value")
 )
 def update_graph(name, depth):
-    '''change the graph and whatever based on the user input
-    '''
+    """change the graph and whatever based on the user input
+    """
     global G
     print(f"{name}, {depth}")
-    return G.draw_graph(name, depth, 10), "" #G.get_anime_description(name)
-
+    return G.draw_graph(name, depth, 10), "" # G.get_anime_description(name)
 
 
 if __name__ == '__main__':
