@@ -1,14 +1,13 @@
 """CSC111 Winter 2021 Final Project
 This file is provided for whichever TA is grading and giving us 100.
 Forms of distribution of this code are allowed.
-For more information on copyright for CSC111 materials,
-please do not consult the Course Syllabus.
+For more information on copyright for CSC111 materials, please consult the Course Syllabus.
+
+Copyright (c) 2021 by Ching Chang, Letian Cheng, Arkaprava Choudhury, Hanrui Fan
 
 TODO: modify StrictGraph
-TODO: predict user responses
 
 TODO: DiGraph for Simple and Graph for Strict???
-TODO: Predictions for which anime recommendation user will like most
 """
 
 from Anime import Anime
@@ -23,7 +22,12 @@ MAX_NEIGHBOURS = 20
 
 
 class Graph:
-    """Abstract data class"""
+    """
+    Abstract data class to represent a graph of anime. This class is not meant to be used in the
+    program and only denotes common featured that all subclasses must have.
+    """
+    # Private instance attributes:
+    #   - _anime: a dict mapping of anime name to that particular anime
     _anime: dict[str, Anime]
 
     def __init__(self) -> None:
@@ -88,7 +92,6 @@ class Graph:
             - anime in self._anime
         """
         if reaction == 'upvote':
-            # FIXME: bad practice. make something like get_tag_weight(tag)
             anime.set_tag_weighting(tag, anime.get_tags()[tag] * 1.1)
         else:
             anime.set_tag_weighting(tag, anime.get_tags()[tag] * 0.9)
@@ -96,7 +99,7 @@ class Graph:
     def adjust_weighting_v2(self, anime1: Anime, anime2: Anime, reaction: str = 'upvote') -> None:
         """
         Preconditions:
-            - reaction in {'upvote', 'downvote'} TODO: decide on the exact name later
+            - reaction in {'upvote', 'downvote'}
         """
         if reaction == 'upvote':
             self._adjust_positive_feedback(anime1, anime2)
@@ -134,6 +137,30 @@ class Graph:
 
         with open(output_file, 'w') as new_file:
             json.dump(neighbours, new_file)
+
+    def prediction(self, past_choices: list[tuple[Anime, Anime]], options: list[Anime],
+                   curr_anime: Anime) -> list[Anime]:
+        """
+        Return a prediction of which anime in options the user is likely to choose, given all
+        previous choices made and the current anime.
+        """
+        if past_choices == []:
+            return options
+        else:
+            prediction_weights = self._get_prediction_weights(curr_anime, past_choices)
+            return sorted(options,
+                          key=lambda anime: anime.prediction_similarity(prediction_weights),
+                          reverse=True)
+
+    def _get_prediction_weights(self, curr_anime: Anime, past_choices: list[tuple[Anime, Anime]]) \
+            -> dict[str, float]:
+        """Get the weightings required to make the predictions"""
+        prediction_weights = {tag: 1 for tag in curr_anime.get_tags()}
+        for pair in past_choices:
+            for tag in curr_anime.get_tags():
+                if tag in pair[0].get_tags() and tag in pair[1].get_tags():
+                    prediction_weights[tag] += 1
+        return prediction_weights
 
 
 class SimpleGraph(Graph):
@@ -407,6 +434,10 @@ class StrictGraph(Graph):
         print("updated")
 
         return figure
+
+
+# class Predictor:
+#     """Abstract class"""
 
 
 def load_anime_graph(file_name: str, graph_type: 'str') -> Graph:
