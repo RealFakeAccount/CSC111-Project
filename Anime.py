@@ -36,7 +36,6 @@ class Anime:
     title: str  # name of anime
     url: str  # url of anime on MAL
     thumbnail: str  # thumbnail
-    score: float  # average rating in the database
     detail: str  # introduction to the anime
     neighbours: list[Anime]
 
