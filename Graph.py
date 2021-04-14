@@ -132,6 +132,9 @@ class Graph:
             neighbours[anime_name]['tags'] = self._anime[anime_name].get_tags()
             for neighbour in self._anime[anime_name].neighbours:
                 neighbours[anime_name]['neighbours'].append(neighbour.title)
+            neighbours[anime_name]['url'] = self._anime[anime_name].url
+            neighbours[anime_name]['thumbnail'] = self._anime[anime_name].thumbnail
+            neighbours[anime_name]['detail'] = self._anime[anime_name].detail
 
         with open(output_file, 'w') as new_file:
             json.dump(neighbours, new_file)
@@ -326,6 +329,27 @@ def load_anime_graph(file_name: str) -> Graph:
 
     return anime_graph
 
+
+def load_from_serialized_data(file_name: str, graph_type='simple') -> Graph:
+    """Return the anime graph corresponding to the given serialized dataset
+        Preconditions:
+            - file_name is the path to a json file corresponding to the anime data
+              format described in the project report
+    """
+    if graph_type == 'simple':
+        anime_graph = SimpleGraph()
+    else:
+        anime_graph = StrictGraph()
+
+    count = 0
+    with open(file_name) as json_file:
+        data = json.load(json_file)
+        for title in data:
+            anime_graph.add_anime(title, data[title])
+            count += 1
+            print(f"done {count}")
+
+    return anime_graph
 
 # if __name__ == "__main__":
 #     import python_ta
