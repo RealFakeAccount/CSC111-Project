@@ -27,6 +27,9 @@ class Anime:
         - thumbnail: The url to the thumbnail of the anime
         - detail: ...
         - neighbours: ...
+
+    Private Instance Attributes:
+      - _tags: A dictionary mapping each tag of the anime to a weighting from 0 to 1 (inclusive)
     """
     title: str  # name of anime
     url: str
@@ -34,9 +37,6 @@ class Anime:
     score: float  # average rating in the database
     detail: str  # introduction to the anime
     neighbours: list[Anime]
-
-    # Private Instance Attributes:
-    #   - _tags: A dictionary mapping each map of the anime to a weighting from 0 to 1 (inclusive)
     _tags: dict[str, float]  # tag: weighting(0-1)
 
     def __init__(self, data: dict[str, Union[str, list[str]]]):
