@@ -16,7 +16,7 @@ from typing import Union, Optional
 import networkx as nx
 import json
 from multiprocessing import Pool
-import os
+import parse
 
 MAX_NEIGHBOURS = 20
 
@@ -48,7 +48,7 @@ class Graph:
         """ return the name of one anime.
         return an empty string if not found
         """
-        return self._anime.get(title, "")
+        return parse.get_anime_description(self._anime[title].url) if title in self._anime else "Anime title not found"
 
     def get_similarity(self, anime1: str, anime2: str) -> float:
         """Return the similarity between anime1 and anime2.
@@ -208,6 +208,7 @@ class SimpleGraph(Graph):
         y_edge_pos = []
         x_mid_pos = []
         y_mid_pos = []
+        edge_similarity = []
         for edge in graph.edges:
             x0, y0 = nxg[edge[0]][0], nxg[edge[0]][1]
 
@@ -248,16 +249,29 @@ class SimpleGraph(Graph):
         else:
             nxg = nx.drawing.layout.spring_layout(graph)
 
-        x_node_pos = [nxg[key][0] for key in graph.nodes]
-        y_node_pos = [nxg[key][1] for key in graph.nodes]
+        x_node_pos = [nxg[key][0] for key in graph.nodes if key != shell[0]]
+        y_node_pos = [nxg[key][1] for key in graph.nodes if key != shell[0]]
+        node_hover = [key for key in G.nodes if key != shell[0]]
 
         x_edge_pos, y_edge_pos, mid_pos = self._get_all_edges_pos(graph, nxg)
 
         all_traces = []
 
+        central_node_trace = plotly.graph_objs.Scatter(
+            x=nxg[shell[0]][0]
+            y=nxg[shell[0]][1]
+            hovertext=shell[0]
+            mode="markers",
+            name="nodes",
+            marker={'size': 50, 'color': 'Red'}
+        )
+
+        all_traces.append(central_node_trace)
+
         nodes_trace = plotly.graph_objs.Scatter(
             x=x_node_pos,
             y=y_node_pos,
+            hovertext=node_hover,
             mode="markers",
             name="nodes",
             marker={'size': 50, 'color': 'LightSkyBlue'}
@@ -276,17 +290,17 @@ class SimpleGraph(Graph):
 
         all_traces.append(edges_trace)
 
-        # hover_trace = plotly.graph_objs.Scatter(
-        #     x = mid_pos[0],
-        #     y = mid_pos[1],
-        #     hover_text = "",#TODO
-        #     mode='markers',
-        #     hoverinfo="text",
-        #     marker={'size': 50, 'color': 'LightSkyBlue'}
+        hover_trace = plotly.graph_objs.Scatter(
+            x = mid_pos[0],
+            y = mid_pos[1],
+            hover_text = "",#TODO
+            mode='markers',
+            hoverinfo="text",
+            marker={'size': 50, 'color': 'LightSkyBlue'}
 
-        # )
+        )
 
-        # all_traces.append(hover_trace)
+        all_traces.append(hover_trace)
 
         graph_layout = plotly.graph_objs.Layout(
             showlegend=False,
