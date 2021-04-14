@@ -10,7 +10,7 @@ import Graph
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
-G = Graph.load_anime_graph("data2.json")
+G = Graph.load_anime_graph("data/data.json", "simple")
 
 ele = [
     # Title
