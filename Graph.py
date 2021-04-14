@@ -15,7 +15,7 @@ import plotly
 from typing import Union, Optional
 import networkx as nx
 import json
-from multiprocessing import Pool
+import multiprocessing
 import parse
 
 MAX_NEIGHBOURS = 20
@@ -226,31 +226,34 @@ class Graph:
             cur = Q[0]
             shell[1].append(cur[0])
             Q.pop(0)
-
+            
             for i in self.get_related_anime(cur[0], limit):
                 self.add_connection(graph, cur[0], i.title)
                 if cur[1] < depth:
                     Q.append((i.title, cur[1] + 1))
 
+        print(shell[1])
         print(len(shell[1]))
 
-        if 1 + limit ** depth > 3:
+        if 1 + limit ** depth > 3 and len(shell[1]) >= 2:
             nxg = nx.drawing.layout.shell_layout(graph, shell)
         else:
             nxg = nx.drawing.layout.spring_layout(graph)
+            print(nxg[anime_title])
 
-        x_node_pos = [nxg[key][0] for key in graph.nodes if key != shell[0]]
-        y_node_pos = [nxg[key][1] for key in graph.nodes if key != shell[0]]
-        node_hover = [key for key in graph.nodes if key != shell[0]]
+        x_node_pos = [nxg[key][0] for key in graph.nodes if key != anime_title]
+        y_node_pos = [nxg[key][1] for key in graph.nodes if key != anime_title]
+        node_hover = [key for key in graph.nodes if key != anime_title]
 
         x_edge_pos, y_edge_pos, mid_pos, similarity = self._get_all_edges_pos(graph, nxg)
 
         all_traces = []
 
+
         central_node_trace = plotly.graph_objs.Scatter(
-            x=nxg[shell[0]][0],
-            y=nxg[shell[0]][1],
-            hovertext=shell[0],
+            x=nxg[anime_title][0],
+            y=nxg[anime_title][1],
+            hovertext=anime_title,
             mode="markers",
             name="nodes",
             marker={'size': 50, 'color': 'Red'}
@@ -318,11 +321,11 @@ def load_anime_graph(file_name: str) -> Graph:
         for title in data:
             anime_graph.add_anime(title, data[title])
 
-    count = 0
-    for anime_name in anime_graph.get_all_anime():
-        anime_graph.calculate_neighbours(anime_name)
-        count += 1
-        print(f"done {count}")
+    p = multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1)
+
+    p.map(anime_graph.calculate_neighbours, anime_graph.get_all_anime())
+    p.close()
+    p.join()
 
     return anime_graph
 
