@@ -88,6 +88,7 @@ class Graph:
             - anime in self._anime
         """
         if reaction == 'upvote':
+            # FIXME: bad practice. make something like get_tag_weight(tag)
             anime.set_tag_weighting(tag, anime.get_tags()[tag] * 1.1)
         else:
             anime.set_tag_weighting(tag, anime.get_tags()[tag] * 0.9)
@@ -119,6 +120,20 @@ class Graph:
 
         if len(self._anime[anime_name].neighbours) > MAX_NEIGHBOURS:
             self._anime[anime_name].neighbours = self._anime[anime_name].neighbours[:MAX_NEIGHBOURS]
+
+    def serialize(self, output_file: str) -> None:
+        """Save the neighbours of each Anime in this graph into an output file
+        """
+        neighbours = {}
+
+        for anime_name in self._anime:
+            neighbours[anime_name] = {'neighbours': []}
+            neighbours[anime_name]['tags'] = self._anime[anime_name].get_tags()
+            for neighbour in self._anime[anime_name].neighbours:
+                neighbours[anime_name]['neighbours'].append(neighbour.title)
+
+        with open(output_file, 'w') as new_file:
+            json.dump(neighbours, new_file)
 
 
 class SimpleGraph(Graph):
