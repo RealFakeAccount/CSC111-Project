@@ -10,7 +10,7 @@ import Graph
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
-G = Graph.load_anime_graph("data/data.json")
+G = Graph.load_from_serialized_data("data/graph.json")
 
 ele = [
     # Title
@@ -18,7 +18,7 @@ ele = [
 
     # Text Input
     html.Label("Text Input"),
-    dcc.Input(id="name", value="40MeterP: Tsuisou Youka", type="text"),
+    dcc.Input(id="name", value="Kindan Joshi", type="text"),
 
     # slider
     html.Label('Slider of Depth'),
@@ -27,7 +27,7 @@ ele = [
     # Graph
     dcc.Graph(
         id="connection-graph",
-        figure=G.draw_graph("40MeterP: Tsuisou Youka", 1, 10)
+        figure=G.draw_graph("Kindan Joshi", 1, 10)
         # figure = Figure(data=px.line(x=["a","b","c"], y=[1,3,2], title="sample figure"))
     ),
 
@@ -35,7 +35,7 @@ ele = [
     dcc.Markdown(id="description title", children="""
     ### Anime description:
     """),
-    dcc.Markdown(id="description", children=G.get_anime_description("40MeterP: Tsuisou Youka"))
+    dcc.Markdown(id="description", children=G.get_anime_description("Kindan Joshi"))
 ]
 app.layout = html.Div(children=ele)
 
