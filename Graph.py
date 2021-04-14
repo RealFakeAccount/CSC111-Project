@@ -10,7 +10,7 @@ from typing import Union, Optional
 import networkx as nx
 import json
 from multiprocessing import Pool
-import os
+import parse
 
 MAX_NEIGHBOURS = 20
 
@@ -40,7 +40,7 @@ class Graph:
         """ return the name of one anime.
         return an empty string if not found
         """
-        return self._anime.get(title, "")
+        return parse.get_anime_description(self._anime[title].url) if title in self._anime else "Anime title not found"
 
     def get_similarity(self, anime1: str, anime2: str) -> float:
         """Return the similarity between anime1 and anime2.
@@ -103,12 +103,17 @@ class Graph:
 
         G = nx.Graph()
         shell = [[anime_title], []]  # [[center of graph], [other nodes]]
+        visited = set()
         Q = [(anime_title, 0)]
         while len(Q) != 0:
             cur = Q[0]
             shell[1].append(cur[0])
             Q.pop(0)
+
             for i in self.get_related_anime(cur[0], limit):
+                if (cur[0], i.title) in visited: continue
+                visited.add((cur[0], i.title)), visited.add((i.title, cur[0]))
+
                 self.add_connection(G, cur[0], i.title)
                 if cur[1] < depth:
                     Q.append((i.title, cur[1] + 1))

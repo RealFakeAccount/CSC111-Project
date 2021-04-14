@@ -32,8 +32,10 @@ ele = [
     ),
 
     # # Anime description
-    html.Label("Anime Description"),
-    dcc.Markdown(id="description", children="")
+    dcc.Markdown(id="description title", children="""
+    ### Anime description:
+    """),
+    dcc.Markdown(id="description", children=G.get_anime_description("40MeterP: Tsuisou Youka"))
 ]
 app.layout = html.Div(children=ele)
 
@@ -50,7 +52,7 @@ def update_graph(name, depth):
     """
     global G
     print(f"{name}, {depth}")
-    return G.draw_graph(name, depth, 10), "" # G.get_anime_description(name)
+    return G.draw_graph(name, depth, 10), G.get_anime_description(name)
 
 
 if __name__ == '__main__':
