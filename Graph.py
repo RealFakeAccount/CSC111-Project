@@ -20,18 +20,16 @@ import parse
 
 MAX_NEIGHBOURS = 20
 
-
 class Graph:
+    """A graph of anime to represent the popularity and similarity network
+    Private Instance Attributes:
+        - _anime: A collection of the anime contained in this graph.
     """
-    Abstract data class to represent a graph of anime. This class is not meant to be used in the
-    program and only denotes common featured that all subclasses must have.
-    """
-    # Private instance attributes:
-    #   - _anime: a dict mapping of anime name to that particular anime
     _anime: dict[str, Anime]
 
     def __init__(self) -> None:
-        self._anime = {}
+        print("qwq")
+        self._anime = dict()
 
     def add_anime(self, title: str, data: dict[str, Union[str, list[str]]]) -> None:
         """Add an anime into this graph
@@ -162,17 +160,6 @@ class Graph:
                     prediction_weights[tag] += 1
         return prediction_weights
 
-
-class SimpleGraph(Graph):
-    """A graph of anime to represent the popularity and similarity network
-    Private Instance Attributes:
-        - _anime: A collection of the anime contained in this graph.
-    """
-    _anime: dict[str, Anime]
-
-    def __init__(self) -> None:
-        super().__init__()
-
     def get_related_anime(self, anime_title: str, limit: int = 5) -> list[Anime]:
         """Return a list of up to <limit> anime that are related to the given anime,
         ordered by their similarity in descending order.
@@ -216,11 +203,14 @@ class SimpleGraph(Graph):
 
             x_mid_pos.extend([(x0 + x1) / 2, None])
             y_mid_pos.extend([(y0 + y1) / 2, None])
-        return (x_edge_pos, y_edge_pos, (x_mid_pos, y_mid_pos))
+
+            edge_similarity.extend([self._anime[edge[0]].calculate_similarity(self._anime[edge[1]]), None]) # TODO Need to be checked, this is real time calculation and needs to consider load static similarity data
+
+        return (x_edge_pos, y_edge_pos, (x_mid_pos, y_mid_pos), edge_similarity)
 
     def draw_graph(self, anime_title: str, depth: int, limit: int) -> plotly.graph_objs.Figure():
         """Draw a plotly graph centered around the given anime title
-        Preconditions:
+        Preconditions,:
             - depth <= 5 # This will be handled by the slider on the website
         """
         edge = dict()  # dict[Tuple[str, str], float]
@@ -248,16 +238,16 @@ class SimpleGraph(Graph):
 
         x_node_pos = [nxg[key][0] for key in graph.nodes if key != shell[0]]
         y_node_pos = [nxg[key][1] for key in graph.nodes if key != shell[0]]
-        node_hover = [key for key in G.nodes if key != shell[0]]
+        node_hover = [key for key in graph.nodes if key != shell[0]]
 
-        x_edge_pos, y_edge_pos, mid_pos = self._get_all_edges_pos(graph, nxg)
+        x_edge_pos, y_edge_pos, mid_pos, similarity = self._get_all_edges_pos(graph, nxg)
 
         all_traces = []
 
         central_node_trace = plotly.graph_objs.Scatter(
-            x=nxg[shell[0]][0]
-            y=nxg[shell[0]][1]
-            hovertext=shell[0]
+            x=nxg[shell[0]][0],
+            y=nxg[shell[0]][1],
+            hovertext=shell[0],
             mode="markers",
             name="nodes",
             marker={'size': 50, 'color': 'Red'}
@@ -290,7 +280,7 @@ class SimpleGraph(Graph):
         hover_trace = plotly.graph_objs.Scatter(
             x = mid_pos[0],
             y = mid_pos[1],
-            hover_text = "",#TODO
+            hover_text = similarity,
             mode='markers',
             hoverinfo="text",
             marker={'size': 50, 'color': 'LightSkyBlue'}
@@ -312,193 +302,17 @@ class SimpleGraph(Graph):
         return figure
 
 
-class StrictGraph(Graph):
-    """Stricter implementation of anime graph thing"""
-
-    def __init__(self) -> None:
-        """Initialize empty dict"""
-        super().__init__()
-
-    def get_related_anime(self, anime_title: str, limit: int = 5) -> list[Anime]:
-        """Return a list of up to <limit> anime that are related to the given anime,
-        ordered by their similarity in descending order.
-        The similarity is explained in the project report and in the Anime.py file.
-        Raise ValueError if anime_title is not in the graph.
-        """
-        if anime_title in self._anime:
-            anime = self._anime[anime_title]
-            related = []
-
-            for show in anime.neighbours:
-                if anime in show.neighbours:
-                    related.append(show)
-
-            if len(related) > limit:
-                return related[:limit]
-            else:
-                return related
-        else:
-            raise ValueError
-
-    def add_connection(self, graph: nx.Graph(), cur_anime_title: str, det_anime_title: str) -> None:
-        """Add one edge to a given graph
-        Preconditions:
-            - cur_anime_tile in self._anime
-            - det_anime_tile not in self._anime
-        """
-        graph.add_node(det_anime_title, kind=str)
-        graph.add_edge(cur_anime_title, det_anime_title)
-
-    def _get_all_edges_pos(self, graph: nx.Graph, nxg: dict):
-        """Get all edges position in networkx graph and return a tuple of edges position in x-y
-        dimension
-        """
-        x_edge_pos = []
-        y_edge_pos = []
-        x_mid_pos = []
-        y_mid_pos = []
-        for edge in graph.edges:
-            x0, y0 = nxg[edge[0]][0], nxg[edge[0]][1]
-
-            x1, y1 = nxg[edge[1]][0], nxg[edge[1]][1]
-
-            x_edge_pos.extend([x0, x1, None])
-            y_edge_pos.extend([y0, y1, None])
-
-            x_mid_pos.extend([(x0 + x1) / 2, None])
-            y_mid_pos.extend([(y0 + y1) / 2, None])
-        return (x_edge_pos, y_edge_pos, (x_mid_pos, y_mid_pos))
-
-    def draw_graph(self, anime_title: str, depth: int, limit: int) -> plotly.graph_objs.Figure():
-        """Draw a plotly graph centered around the given anime title
-        Preconditions:
-            - depth <= 5 # This will be handled by the slider on the website
-        """
-        edge = dict()  # dict[Tuple[str, str], float]
-        node = dict()
-
-        graph = nx.Graph()
-        shell = [[anime_title], []]  # [[center of graph], [other nodes]]
-        Q = [(anime_title, 0)]
-        while len(Q) != 0:
-            cur = Q[0]
-            shell[1].append(cur[0])
-            Q.pop(0)
-
-            for i in self.get_related_anime(cur[0], limit):
-                self.add_connection(graph, cur[0], i.title)
-                if cur[1] < depth:
-                    Q.append((i.title, cur[1] + 1))
-
-        print(len(shell[1]))
-
-        if 1 + limit ** depth > 3:
-            nxg = nx.drawing.layout.shell_layout(graph, shell)
-        else:
-            nxg = nx.drawing.layout.spring_layout(graph)
-
-        x_node_pos = [nxg[key][0] for key in graph.nodes]
-        y_node_pos = [nxg[key][1] for key in graph.nodes]
-
-        x_edge_pos, y_edge_pos, mid_pos = self._get_all_edges_pos(graph, nxg)
-
-        all_traces = []
-
-        nodes_trace = plotly.graph_objs.Scatter(
-            x=x_node_pos,
-            y=y_node_pos,
-            mode="markers",
-            name="nodes",
-            marker={'size': 50, 'color': 'LightSkyBlue'}
-        )
-
-        all_traces.append(nodes_trace)
-
-        edges_trace = plotly.graph_objs.Scatter(
-            x=x_edge_pos,
-            y=y_edge_pos,
-            mode="lines",
-            name="edges",
-            line=dict(color='rgb(210,210,210)', width=1),
-            hoverinfo="none"
-        )
-
-        all_traces.append(edges_trace)
-
-        # hover_trace = plotly.graph_objs.Scatter(
-        #     x = mid_pos[0],
-        #     y = mid_pos[1],
-        #     hover_text = "",#TODO
-        #     mode='markers',
-        #     hoverinfo="text",
-        #     marker={'size': 50, 'color': 'LightSkyBlue'}
-
-        # )
-
-        # all_traces.append(hover_trace)
-
-        graph_layout = plotly.graph_objs.Layout(
-            showlegend=False,
-            xaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False},
-            yaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False}
-        )
-
-        figure = plotly.graph_objs.Figure(data=all_traces, layout=graph_layout)
-
-        print("updated")
-
-        return figure
-
-
-# class Predictor:
-#     """Abstract class"""
-
-
-def load_anime_graph(file_name: str, graph_type: 'str') -> Graph:
-    """Return the anime graph corresponding to the given dataset
-    Preconditions:
-        - file_name is the path to a json file corresponding to the anime data
-          format described in the project report
-
-    Preconditions:
-        - graph_type in {'strict', 'simple'}
-    """
-    if graph_type == 'simple':
-        return _simple_load_anime_graph(file_name)
-    else:
-        return _strict_load_anime_graph(file_name)
-
-
-def _simple_load_anime_graph(file_name: str) -> SimpleGraph:
+def load_anime_graph(file_name: str) -> Graph:
     """Return the anime graph corresponding to the given dataset
     Preconditions:
         - file_name is the path to a json file corresponding to the anime data
           format described in the project report
     """
-    anime_graph = SimpleGraph()
+    anime_graph = Graph()
 
-    with open(file_name) as json_file:
-        data = json.load(json_file)
-        for title in data:
-            anime_graph.add_anime(title, data[title])
-
-    count = 0
-    for anime_name in anime_graph.get_all_anime():
-        anime_graph.calculate_neighbours(anime_name)
-        count += 1
-        print(f"done {count}")
-
-    return anime_graph
-
-
-def _strict_load_anime_graph(file_name: str) -> StrictGraph:
-    """Return the anime graph corresponding to the given dataset
-    Preconditions:
-        - file_name is the path to a json file corresponding to the anime data
-          format described in the project report
-    """
-    anime_graph = StrictGraph()
-
+    print(type(anime_graph))
+    print(anime_graph._anime)
+    
     with open(file_name) as json_file:
         data = json.load(json_file)
         for title in data:
