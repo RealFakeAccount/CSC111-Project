@@ -122,13 +122,16 @@ class Graph:
         neighbours = {}
 
         for anime_name in self._anime:
-            neighbours[anime_name] = {'neighbours': []}
-            neighbours[anime_name]['tags'] = self._anime[anime_name].get_tags()
+            neighbours[anime_name] = {
+                'title': self._anime[anime_name].title,
+                'neighbours': [],
+                'url': self._anime[anime_name].url,
+                'thumbnail': self._anime[anime_name].thumbnail,
+                'detail': self._anime[anime_name].detail,
+                'tags': self._anime[anime_name].get_tags()
+            }
             for neighbour in self._anime[anime_name].neighbours:
                 neighbours[anime_name]['neighbours'].append(neighbour.title)
-            neighbours[anime_name]['url'] = self._anime[anime_name].url
-            neighbours[anime_name]['thumbnail'] = self._anime[anime_name].thumbnail
-            neighbours[anime_name]['detail'] = self._anime[anime_name].detail
 
         with open(output_file, 'w') as new_file:
             json.dump(neighbours, new_file)
@@ -220,7 +223,7 @@ class Graph:
             cur = Q[0]
             shell[1].append(cur[0])
             Q.pop(0)
-            
+
             for i in self.get_related_anime(cur[0], limit):
                 self.add_connection(graph, cur[0], i.title)
                 if cur[1] < depth:
@@ -312,7 +315,7 @@ def load_anime_graph(file_name: str) -> Graph:
           format described in the project report
     """
     anime_graph = Graph()
-    
+
     with open(file_name) as json_file:
         data = json.load(json_file)
         for title in data:
@@ -334,7 +337,7 @@ def load_anime_graph_multiprocess(file_name: str) -> Graph:
           format described in the project report
     """
     anime_graph = Graph()
-    
+
     with open(file_name) as json_file:
         data = json.load(json_file)
         for title in data:
@@ -370,7 +373,7 @@ def load_from_serialized_data(file_name: str) -> Graph:
 if __name__ == "__main__":
     # G = load_anime_graph_multiprocess("data/full.json")
     # G.serialize("data/full_graph.json")
-    
+
     t = time.process_time()
     load_from_serialized_data("data/full_graph.json")
     elapsed_time = time.process_time() - t
