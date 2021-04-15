@@ -32,6 +32,21 @@ class Graph:
         if title not in self._anime:
             self._anime[title] = Anime(data)
 
+    def add_neighbour(self, anime_title: str, neighbour_title: str) -> None:
+        """Append the given neighbour in the given anime's list of neighbours
+
+        Unlike adding an edge in a typical graph, we only add the given neighbour in the list of
+        the given anime's neighbours, without adding the given anime in the list of the given
+        neighbour's neighbours. This is because neighbours are sorted by the similarity.
+
+        Add neighbour_title even if neighbour_title is not in self._anime, because we assume that
+        neighbour_title will eventually be added to the graph, based on our data structure.
+
+        Preconditions:
+            - anime_title in self._anime
+        """
+        self._anime[anime_title].neighbours.append(neighbour_title)
+
     def get_all_anime(self) -> list[str]:
         """Return a list of all the anime in this graph
         """
@@ -172,6 +187,7 @@ class Graph:
 
     def add_connection(self, graph: nx.Graph(), cur_anime_title: str, det_anime_title: str) -> None:
         """Add one edge to a given graph
+
         Preconditions:
             - cur_anime_tile in self._anime
             - det_anime_tile not in self._anime
@@ -354,10 +370,8 @@ def load_from_serialized_data(file_name: str) -> Graph:
         data = json.load(json_file)
         for title in data:
             anime_graph.add_anime(title, data[title])
-
-        for title in data:
-            anime_graph._anime[title].neighbours = [anime_graph._anime[i] for i in
-                                                    data[title]['neighbours']]
+            for neighbour in data[title]['neighbours']:
+                anime_graph.add_neighbour(title, neighbour)
 
     return anime_graph
 
@@ -415,15 +429,14 @@ class FastGraph:
 
 if __name__ == '__main__':
     # t = time.process_time()
-    # G = FastGraph().load_anime_graph_multiprocess('data/full.json')
-    # G.serialize('data/full_graph.json')
+    # graph = FastGraph().load_anime_graph_multiprocess('data/full.json')
+    # graph.serialize('data/full_graph.json')
     # elapsed_time = time.process_time() - t
-    # print(f'process takes {elapsed_time} sec')
+    # print(f'Process takes {elapsed_time} sec')
 
     import python_ta
     python_ta.check_all(config={
         'max-line-length': 100,
-        'disable': ['E9999'],
-        # 'allowed-io': ['serialize'],
+        'disable': ['E9999', 'E9998'],
         'max-nested-blocks': 4
     })
