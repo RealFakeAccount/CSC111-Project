@@ -54,11 +54,6 @@ class Graph:
         else:
             raise ValueError
 
-    def get_related_anime(self, anime_title: str, limit: int = 5) -> list[Anime]:
-        """Return a list of similar anime
-        """
-        raise NotImplementedError
-
     def _insert_neighbour(self, anime1: Anime, anime2: Anime) -> None:
         """bleh"""
         anime1.insert_neighbour(anime2)
@@ -181,8 +176,9 @@ class Graph:
             - cur_anime_tile in self._anime
             - det_anime_tile not in self._anime
         """
-        graph.add_node(det_anime_title, kind=str)
-        graph.add_edge(cur_anime_title, det_anime_title)
+        if cur_anime_title != det_anime_title:
+            graph.add_node(det_anime_title, kind=str)
+            graph.add_edge(cur_anime_title, det_anime_title)
 
     def _get_all_edges_pos(self, graph: nx.Graph, nxg: dict):
         """Get all edges position in networkx graph and return a tuple of edges position in x-y
@@ -204,7 +200,9 @@ class Graph:
             x_mid_pos.extend([(x0 + x1) / 2, None])
             y_mid_pos.extend([(y0 + y1) / 2, None])
 
-            edge_similarity.extend([self._anime[edge[0]].calculate_similarity(self._anime[edge[1]]), None]) # TODO Need to be checked, this is real time calculation and needs to consider load static similarity data
+            edge_sim = self._anime[edge[0]].calculate_similarity(self._anime[edge[1]])
+
+            edge_similarity.extend(["Similarity score: "+ str(edge_sim) + " Between " + edge[0] +" and " + edge[1], None]) # TODO Need to be checked, this is real time calculation and needs to consider load static similarity data
 
         return (x_edge_pos, y_edge_pos, (x_mid_pos, y_mid_pos), edge_similarity)
 
@@ -218,11 +216,12 @@ class Graph:
 
         graph = nx.Graph()
         shell = [[anime_title], []]  # [[center of graph], [other nodes]]
-        Q = [(anime_title, 0)]
+        Q = [(anime_title, 0)] # title, depth
         while len(Q) != 0:
             cur = Q[0]
             shell[1].append(cur[0])
             Q.pop(0)
+            print(cur[0])
 
             for i in self.get_related_anime(cur[0], limit):
                 self.add_connection(graph, cur[0], i.title)
@@ -230,7 +229,7 @@ class Graph:
                     Q.append((i.title, cur[1] + 1))
 
         print(shell[0],shell[1])
-        print(len(shell[1]))
+        print(f"total node number: {len(shell[1])}")
 
         if 1 + limit ** depth > 3 and len(shell[1]) >= 2:
             nxg = nx.drawing.layout.shell_layout(graph, shell)
@@ -248,8 +247,8 @@ class Graph:
 
 
         central_node_trace = plotly.graph_objs.Scatter(
-            x=nxg[anime_title][0],
-            y=nxg[anime_title][1],
+            x=[nxg[anime_title][0]],
+            y=[nxg[anime_title][1]],
             hovertext=anime_title,
             mode="markers",
             name="nodes",
@@ -283,10 +282,10 @@ class Graph:
         hover_trace = plotly.graph_objs.Scatter(
             x = mid_pos[0],
             y = mid_pos[1],
-            hover_text = similarity,
+            hovertext = similarity,
             mode='markers',
             hoverinfo="text",
-            marker={'size': 50, 'color': 'LightSkyBlue'}
+            marker={'size': 5, 'color': 'Black'}
 
         )
 
@@ -341,6 +340,9 @@ def load_from_serialized_data(file_name: str) -> Graph:
         data = json.load(json_file)
         for title in data:
             anime_graph.add_anime(title, data[title])
+
+        for title in data:
+            anime_graph._anime[title].neighbours = [anime_graph._anime[i] for i in data[title]["neighbours"]]
             # count += 1
             # print(f"done {count}")
 
@@ -348,7 +350,6 @@ def load_from_serialized_data(file_name: str) -> Graph:
 
 class Load_Graph_Fast:
     _anime: list[Anime]
-    NEIGHBOUR_LIMIT: int
 
     def __init__(self):
         self._anime = list()
@@ -394,6 +395,7 @@ class Load_Graph_Fast:
 if __name__ == "__main__":
     t = time.process_time()
     G = load_from_serialized_data("data/graph.json")
+    assert "Karakai Jouzou no (Moto) Takagi-san Special" in G._anime
     print(G._anime["Karakai Jouzou no (Moto) Takagi-san Special"].neighbours)
     elapsed_time = time.process_time() - t
     print(f"process takes {elapsed_time} sec")
