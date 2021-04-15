@@ -362,10 +362,19 @@ class Load_Graph_Fast:
         Preconditions:
             - anime in self._anime
         """
-        anime_list = self._anime
+        anime_list = self._anime.copy()
         anime_list.sort(key = anime.calculate_similarity, reverse = True)
         anime.neighbours = anime_list[:NEIGHBOUR_LIMIT]
         return anime
+
+    def calc_graph(self, anime_list: list[Anime]) -> Graph:
+        self._anime = anime_list.copy()
+        p = multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1)
+        res = p.map(self._calculate_neighbours, anime_list)
+        p.close()
+        p.join()
+
+        return {anime_list[i].title:res[i] for i in range(0, len(anime_list))}
 
     def load_anime_graph_multiprocess(self, file_name: str) -> Graph:
         """Return the anime graph corresponding to the given dataset
@@ -381,16 +390,7 @@ class Load_Graph_Fast:
             for title in data:
                 anime_graph.add_anime(title, data[title])
 
-        Anime_list = list(anime_graph._anime.values())
-        self._anime = list(anime_graph._anime.values())
-
-        p = multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1)
-        res = p.map(self._calculate_neighbours, Anime_list)
-        p.close()
-        p.join()
-
-        anime_graph._anime = {Anime_list[i].title:res[i] for i in range(0, len(Anime_list))}
-        return anime_graph
+        return self.calc_graph(list(anime_graph._anime.values()))
 
 if __name__ == "__main__":
     t = time.process_time()
