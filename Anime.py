@@ -120,24 +120,10 @@ class Anime:
 
     def insert_neighbour(self, anime: Anime) -> None:
         """bleh"""
+        if anime.title == self.title: return
         self.neighbours.append(anime)
         self.neighbours.sort(key=self.calculate_similarity, reverse=True)
         self.neighbours = self.neighbours[:NEIGHBOUR_LIMIT]
-
-        # TODO: do we need the following line at all?
-        # 
-
-        # if self.neighbours == []:
-        #     self.neighbours.append(anime)
-        #     return None
-
-        # n = len(self.neighbours)
-
-        # while self.calculate_similarity(anime) > self.calculate_similarity(anime.neighbours[n])
-        # and n > 0:
-        #     n -= 1
-
-        # self.neighbours.insert(n, anime)
 
     def adjust_negative_feedback(self, anime: Anime) -> None:
         """
