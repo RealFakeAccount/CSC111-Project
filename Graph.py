@@ -232,7 +232,7 @@ class Graph:
         print(f"total node number: {len(shell[1])}")
 
         if 1 + limit ** depth > 3 and len(shell[1]) >= 2:
-            nxg = nx.drawing.layout.shell_layout(graph, shell)
+            nxg = nx.drawing.nx_agraph.graphviz_layout(graph, prog="twopi", root=shell[0][0], args=shell[1])
         else:
             nxg = nx.drawing.layout.spring_layout(graph)
             print(nxg[anime_title])
@@ -367,19 +367,17 @@ class Load_Graph_Fast:
         anime.neighbours = anime_list[:NEIGHBOUR_LIMIT]
         return anime
 
-    def calc_graph(self, graph: Graph) -> Graph:
+    def calc_graph(self, anime_dic: dict[str, Anime]) -> dict[str, Anime]:
         """ input is a uncalculated anime graph
         return a calculated anime graph
         """
-        self._anime, anime_list = list(graph._anime.values()), list(graph._anime.values())
+        self._anime, anime_list = list(anime_dic.values()), list(anime_dic.values())
         p = multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1)
         res = p.map(self._calculate_neighbours, anime_list)
         p.close()
         p.join()
 
-        graph._anime = {anime_list[i].title:res[i] for i in range(0, len(anime_list))}
-
-        return graph
+        return {anime_list[i].title:res[i] for i in range(0, len(anime_list))}
 
     def load_anime_graph_multiprocess(self, file_name: str) -> Graph:
         """Return the anime graph corresponding to the given dataset
@@ -395,7 +393,8 @@ class Load_Graph_Fast:
             for title in data:
                 anime_graph.add_anime(title, data[title])
 
-        return self.calc_graph(anime_graph)
+        anime_graph._anime = self.calc_graph(anime_graph._anime)
+        return anime_graph
 
 if __name__ == "__main__":
     t = time.process_time()
