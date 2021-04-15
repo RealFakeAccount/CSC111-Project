@@ -227,7 +227,7 @@ class Graph:
             if cur[1] < depth:
                 for i in self.get_related_anime(cur[0], limit):
                     self.add_connection(graph, cur[0], i.title)
-                    Q.append((i.title, cur[1] + 1))
+                    queue.append((i.title, cur[1] + 1))
 
         print(shell[0], shell[1])
         print(f"total node number: {len(shell[1])}")
