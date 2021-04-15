@@ -12,7 +12,7 @@ import multiprocessing
 import time
 import plotly
 import networkx as nx
-from Anime import Anime, NEIGHBOUR_LIMIT
+from anime import Anime, NEIGHBOUR_LIMIT
 import parse
 
 
@@ -41,7 +41,8 @@ class Graph:
         """ return the name of one anime.
         return an empty string if not found
         """
-        return parse.get_anime_description(self._anime[title].url) if title in self._anime else "Anime title not found"
+        return parse.get_anime_description(
+            self._anime[title].url) if title in self._anime else "Anime title not found"
 
     def get_similarity(self, anime1: str, anime2: str) -> float:
         """Return the similarity between anime1 and anime2.
@@ -80,9 +81,9 @@ class Graph:
             - anime in self._anime
         """
         if reaction == 'upvote':
-            anime.set_tag_weighting(tag, anime.get_tags()[tag] * 1.1)
+            anime.set_tag_weighting(tag, anime.get_tag_weight(tag) * 1.1)
         else:
-            anime.set_tag_weighting(tag, anime.get_tags()[tag] * 0.9)
+            anime.set_tag_weighting(tag, anime.get_tag_weight(tag) * 0.9)
 
     def adjust_weighting_v2(self, anime1: Anime, anime2: Anime, reaction: str = 'upvote') -> None:
         """
@@ -121,7 +122,8 @@ class Graph:
                 'url': self._anime[anime_name].url,
                 'thumbnail': self._anime[anime_name].thumbnail,
                 'detail': self._anime[anime_name].detail,
-                'tags': self._anime[anime_name].get_tags()
+                'tags': {tag: self._anime[anime_name].get_tag_weight(tag) for tag in
+                         self._anime[anime_name].get_all_tags()}
             }
             for neighbour in self._anime[anime_name].neighbours:
                 neighbours[anime_name]['neighbours'].append(neighbour.title)
@@ -146,10 +148,10 @@ class Graph:
     def _get_prediction_weights(self, curr_anime: Anime, past_choices: list[tuple[Anime, Anime]]) \
             -> dict[str, float]:
         """Get the weightings required to make the predictions"""
-        prediction_weights = {tag: 1 for tag in curr_anime.get_tags()}
+        prediction_weights = {tag: 1 for tag in curr_anime.get_all_tags()}
         for pair in past_choices:
-            for tag in curr_anime.get_tags():
-                if tag in pair[0].get_tags() and tag in pair[1].get_tags():
+            for tag in curr_anime.get_all_tags():
+                if tag in pair[0].get_all_tags() and tag in pair[1].get_all_tags():
                     prediction_weights[tag] += 1
         return prediction_weights
 
@@ -189,7 +191,7 @@ class Graph:
         edge_similarity = []
         for edge in graph.edges:
             print([edge[0], edge[1]])
-            
+
             x0, y0 = nxg[edge[0]][0], nxg[edge[0]][1]
 
             x1, y1 = nxg[edge[1]][0], nxg[edge[1]][1]
@@ -203,7 +205,8 @@ class Graph:
             edge_sim = self._anime[edge[1]].calculate_similarity(self._anime[edge[0]])
 
             # TODO Need to be checked, this is real time calculation and needs to consider load static similarity data
-            edge_similarity.extend(["Similarity score: " + str(edge_sim) + " Between " + edge[0] + " and " + edge[1], None])
+            edge_similarity.extend(
+                [f'Similarity score: {edge_sim} Between {edge[0]} and {edge[1]}', None])
 
         return (x_edge_pos, y_edge_pos, (x_mid_pos, y_mid_pos), edge_similarity)
 
@@ -220,11 +223,11 @@ class Graph:
 
         graph = nx.Graph()
         shell = [[anime_title], []]  # [[center of graph], [other nodes]]
-        Q = [(anime_title, 0)]  # title, depth
-        while len(Q) != 0:
-            cur = Q[0]
+        queue = [(anime_title, 0)]  # title, depth
+        while len(queue) != 0:
+            cur = queue[0]
             shell[1].append(cur[0])
-            Q.pop(0)
+            queue.pop(0)
             print(cur[0])
             if cur[1] < depth:
                 for i in self.get_related_anime(cur[0], limit):
@@ -349,7 +352,8 @@ def load_from_serialized_data(file_name: str) -> Graph:
             anime_graph.add_anime(title, data[title])
 
         for title in data:
-            anime_graph._anime[title].neighbours = [anime_graph._anime[i] for i in data[title]["neighbours"]]
+            anime_graph._anime[title].neighbours = [anime_graph._anime[i] for i in
+                                                    data[title]['neighbours']]
             # count += 1
             # print(f"done {count}")
 
@@ -406,12 +410,12 @@ class FastGraph:
         return anime_graph
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     # t = time.process_time()
-    # G = FastGraph().load_anime_graph_multiprocess("data/full.json")
-    # G.serialize("data/full_graph.json")
+    # G = FastGraph().load_anime_graph_multiprocess('data/full.json')
+    # G.serialize('data/full_graph.json')
     # elapsed_time = time.process_time() - t
-    # print(f"process takes {elapsed_time} sec")
+    # print(f'process takes {elapsed_time} sec')
 
     import python_ta
     python_ta.check_all(config={

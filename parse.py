@@ -18,7 +18,7 @@ def parse_json(file_name: str, output_file: str, verbose=True, start=12500, end=
         data = json.load(original_file)
         for i in range(start, min(end, len(data['data']))):
             anime = data['data'][i]
-            description = "" # get_anime_description(anime['sources'][0])
+            description = ''  # get_anime_description(anime['sources'][0])
 
             new_data[anime['title']] = {
                 'title': anime['title'],
@@ -59,6 +59,7 @@ def get_anime_description(url: str) -> str:
         print(f'Failed: {url}')
         return 'No details found for this anime'
 
-if __name__ == "__main__":
-    parse_json("data/original.json", "full.json", True, 0, 40000)
-    parse_json("data/original.json", "small.json", True)
+
+if __name__ == '__main__':
+    parse_json('data/original.json', 'full.json', True, 0, 40000)
+    parse_json('data/original.json', 'small.json', True)
