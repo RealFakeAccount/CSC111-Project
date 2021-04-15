@@ -330,7 +330,7 @@ def load_anime_graph(file_name: str) -> Graph:
     return anime_graph
 
 
-def load_from_serialized_data(self, file_name: str) -> Graph:
+def load_from_serialized_data(file_name: str) -> Graph:
     """Return the anime graph corresponding to the given serialized dataset
         Preconditions:
             - file_name is the path to a json file corresponding to the anime data
@@ -342,8 +342,7 @@ def load_from_serialized_data(self, file_name: str) -> Graph:
     with open(file_name) as json_file:
         data = json.load(json_file)
         for title in data:
-            assert len(data[title]["neighbours"]) == 0
-            # anime_graph.add_anime(title, data[title])
+            anime_graph.add_anime(title, data[title])
             # count += 1
             # print(f"done {count}")
 
@@ -396,7 +395,6 @@ class Load_Graph_Fast:
 
 if __name__ == "__main__":
     t = time.process_time()
-    GF = Load_Graph_Fast().load_anime_graph_multiprocess("data/full.json")
-    GF.serialize("data/full_graph.json")
+    load_from_serialized_data("data/full_graph.json")
     elapsed_time = time.process_time() - t
     print(f"process takes {elapsed_time} sec")
