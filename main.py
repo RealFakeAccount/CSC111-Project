@@ -7,11 +7,11 @@ Copyright (c) 2021 by Ching Chang, Letian Cheng, Arkaprava Choudhury, Hanrui Fan
 """
 
 
-import parse, Graph, time
+import parse, graph, time
 
 def generate_dataset(file_name: str, output_folder: str) -> None:
     """ Although dataset have been generated and provide in data.zip, TAs might still want to generate dataset from scratch.
-    If this is the case, please run this funcion. 
+    If this is the case, please run this funcion.
 
     In order to run this, you should provided the path to the original Manami dataset.
     We have downloaded for you, which is called original.json in ./data
@@ -23,12 +23,12 @@ def generate_dataset(file_name: str, output_folder: str) -> None:
     parse.parse_json(file_name, output_folder + "/full.json", True, 0, 40000)
     parse.parse_json(file_name, output_folder + "/small.json", True)
 
-    G = Graph.Load_Graph_Fast().load_anime_graph_multiprocess(output_folder + "/small.json")
+    G = graph.FastGraph().load_anime_graph_multiprocess(output_folder + "/small.json")
     G.serialize(output_folder + "/small_graph.json")
 
-    G = Graph.Load_Graph_Fast().load_anime_graph_multiprocess(output_folder + "/full.json")
+    G = graph.FastGraph().load_anime_graph_multiprocess(output_folder + "/full.json")
     G.serialize(output_folder + "/full_graph.json")
-    
+
     elapsed_time = time.process_time() - t
     print(f"Dataset generation finished within {elapsed_time} sec")
 
