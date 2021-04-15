@@ -31,6 +31,9 @@ class Anime:
         - thumbnail: The url to the thumbnail of the anime
         - detail: ...
         - neighbours: A list of anime that are similar to this anime
+
+    Private Instance Attributes:
+        - _tags: A dictionary mapping each tag of the anime to a weighting from 0 to 1 (inclusive)
     """
 
     title: str  # name of anime
@@ -38,9 +41,6 @@ class Anime:
     thumbnail: str  # thumbnail
     detail: str  # introduction to the anime
     neighbours: list[str]
-
-    # Private Instance Attributes:
-    #   - _tags: A dictionary mapping each tag of the anime to a weighting from 0 to 1 (inclusive)
     _tags: dict[str, float]  # tag: weighting(0-1)
 
     def __init__(self, data: dict[str, Union[str, list[str]]]) -> None:
@@ -146,7 +146,7 @@ class Anime:
         is hence not normalized.
         """
         sum_so_far = 0
-        for tag in self.get_tags():
+        for tag in self.get_all_tags():
             if tag in prediction_weights:
                 sum_so_far += prediction_weights[tag]
         return sum_so_far

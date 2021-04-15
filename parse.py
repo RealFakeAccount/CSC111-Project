@@ -10,7 +10,8 @@ import requests
 from bs4 import BeautifulSoup
 
 
-def parse_json(file_name: str, output_file: str, verbose=True, start=12500, end=13500) -> None:
+def parse_json(file_name: str, output_file: str, verbose: bool = True, start: int = 12500,
+               end: int = 13500) -> None:
     """Parse the anime dataset from file_name and write the output to output_file"""
     new_data = {}
 
@@ -63,3 +64,11 @@ def get_anime_description(url: str) -> str:
 if __name__ == '__main__':
     parse_json('data/original.json', 'full.json', True, 0, 40000)
     parse_json('data/original.json', 'small.json', True)
+
+    # import python_ta
+    # python_ta.check_all(config={
+    #     'max-line-length': 100,
+    #     'disable': ['E9999'],
+    #     'allowed-io': ['parse_json', 'get_anime_description'],
+    #     'max-nested-blocks': 4
+    # })
