@@ -367,14 +367,19 @@ class Load_Graph_Fast:
         anime.neighbours = anime_list[:NEIGHBOUR_LIMIT]
         return anime
 
-    def calc_graph(self, anime_list: list[Anime]) -> Graph:
-        self._anime = anime_list.copy()
+    def calc_graph(self, graph: Graph) -> Graph:
+        """ input is a uncalculated anime graph
+        return a calculated anime graph
+        """
+        self._anime, anime_list = list(graph._anime.values()), list(graph._anime.values())
         p = multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1)
         res = p.map(self._calculate_neighbours, anime_list)
         p.close()
         p.join()
 
-        return {anime_list[i].title:res[i] for i in range(0, len(anime_list))}
+        graph._anime = {anime_list[i].title:res[i] for i in range(0, len(anime_list))}
+
+        return graph
 
     def load_anime_graph_multiprocess(self, file_name: str) -> Graph:
         """Return the anime graph corresponding to the given dataset
@@ -390,12 +395,11 @@ class Load_Graph_Fast:
             for title in data:
                 anime_graph.add_anime(title, data[title])
 
-        return self.calc_graph(list(anime_graph._anime.values()))
+        return self.calc_graph(anime_graph)
 
 if __name__ == "__main__":
     t = time.process_time()
-    G = load_from_serialized_data("data/graph.json")
-    assert "Karakai Jouzou no (Moto) Takagi-san Special" in G._anime
-    print(G._anime["Karakai Jouzou no (Moto) Takagi-san Special"].neighbours)
+    G = Load_Graph_Fast().load_anime_graph_multiprocess("data/full.json")
+    G.serialize("data/full_graph.json")
     elapsed_time = time.process_time() - t
     print(f"process takes {elapsed_time} sec")
