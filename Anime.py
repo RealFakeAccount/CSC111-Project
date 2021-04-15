@@ -49,8 +49,7 @@ class Anime:
         self.thumbnail = data['thumbnail']
         self.detail = data['detail']
         self._tags = _initialize_tags(data['tags'])
-
-        self.neighbours = []
+        self.neighbours = data['neighbours']
 
     def calculate_similarity(self, anime: Anime) -> float:
         """Calculate the similarity between this anime and the given anime.
