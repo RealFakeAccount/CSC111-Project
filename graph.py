@@ -170,7 +170,7 @@ class Graph:
                     prediction_weights[tag] += 1
         return prediction_weights
 
-    def get_related_anime(self, anime_title: str, limit: int = 5) -> list[str]:
+    def get_related_anime(self, anime_title: str, limit: int = 5) -> list[Anime]:
         """Return a list of up to <limit> anime that are related to the given anime,
         ordered by their similarity in descending order.
         The similarity is explained in the project report and in the Anime.py file.
@@ -179,9 +179,9 @@ class Graph:
         if anime_title in self._anime:
             anime = self._anime[anime_title]
             if len(anime.neighbours) > limit:
-                return anime.neighbours[:limit]
+                return [self._anime[anime.neighbours[i]] for i in range(limit)]
             else:
-                return anime.neighbours
+                return [self._anime[neighbour] for neighbour in anime.neighbours]
         else:
             raise ValueError
 
