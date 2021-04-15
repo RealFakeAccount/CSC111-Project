@@ -189,6 +189,8 @@ class Graph:
         y_mid_pos = []
         edge_similarity = []
         for edge in graph.edges:
+            print([edge[0], edge[1]])
+
             x0, y0 = nxg[edge[0]][0], nxg[edge[0]][1]
 
             x1, y1 = nxg[edge[1]][0], nxg[edge[1]][1]
@@ -199,7 +201,7 @@ class Graph:
             x_mid_pos.extend([(x0 + x1) / 2, None])
             y_mid_pos.extend([(y0 + y1) / 2, None])
 
-            edge_sim = self._anime[edge[0]].calculate_similarity(self._anime[edge[1]])
+            edge_sim = self._anime[edge[1]].calculate_similarity(self._anime[edge[0]])
 
             # TODO Need to be checked, this is real time calculation and needs to consider load static similarity data
             edge_similarity.extend(
@@ -212,6 +214,8 @@ class Graph:
         Preconditions,:
             - depth <= 5 # This will be handled by the slider on the website
         """
+        print([anime_title, depth, limit])
+
         graph = nx.Graph()
         shell = [[anime_title], []]  # [[center of graph], [other nodes]]
         queue = [(anime_title, 0)]  # title, depth
@@ -220,18 +224,17 @@ class Graph:
             shell[1].append(cur[0])
             queue.pop(0)
             print(cur[0])
-
-            for i in self.get_related_anime(cur[0], limit):
-                self.add_connection(graph, cur[0], i.title)
-                if cur[1] < depth:
-                    queue.append((i.title, cur[1] + 1))
+            if cur[1] < depth:
+                for i in self.get_related_anime(cur[0], limit):
+                    self.add_connection(graph, cur[0], i.title)
+                    Q.append((i.title, cur[1] + 1))
 
         print(shell[0], shell[1])
         print(f"total node number: {len(shell[1])}")
 
         if 1 + limit ** depth > 3 and len(shell[1]) >= 2:
-            nxg = nx.drawing.nx_agraph.graphviz_layout(graph, prog="twopi", root=shell[0][0],
-                                                       args=shell[1])
+            # nxg = nx.drawing.nx_agraph.graphviz_layout(graph, prog="twopi", root=shell[0][0])
+            nxg = nx.drawing.layout.shell_layout(graph, shell)
         else:
             nxg = nx.drawing.layout.spring_layout(graph)
             print(nxg[anime_title])
@@ -284,7 +287,6 @@ class Graph:
             mode='markers',
             hoverinfo="text",
             marker={'size': 5, 'color': 'Black'}
-
         )
 
         all_traces.append(hover_trace)
