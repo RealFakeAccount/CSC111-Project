@@ -18,7 +18,7 @@ from math import sqrt
 
 NORMALIZATION_SCALE = 1.0
 NORMALIZATION_CONSTANT = sqrt(NORMALIZATION_SCALE)
-NEIGHBOUR_LIMIT = 5
+NEIGHBOUR_LIMIT = 20
 
 
 class Anime:
@@ -37,7 +37,7 @@ class Anime:
     url: str  # url of anime on MAL
     thumbnail: str  # thumbnail
     detail: str  # introduction to the anime
-    neighbours: list[Anime]
+    neighbours: list[str]
 
     # Private Instance Attributes:
     #   - _tags: A dictionary mapping each tag of the anime to a weighting from 0 to 1 (inclusive)
@@ -49,7 +49,8 @@ class Anime:
         self.thumbnail = data['thumbnail']
         self.detail = data['detail']
         self._tags = _initialize_tags(data['tags'])
-        self.neighbours = data['neighbours']
+
+        self.neighbours = [] # WARNING give value in other functions before use
 
     def calculate_similarity(self, anime: Anime) -> float:
         """Calculate the similarity between this anime and the given anime.
