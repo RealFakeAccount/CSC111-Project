@@ -41,7 +41,8 @@ class Graph:
         """ return the name of one anime.
         return an empty string if not found
         """
-        return parse.get_anime_description(self._anime[title].url) if title in self._anime else "Anime title not found"
+        return parse.get_anime_description(
+            self._anime[title].url) if title in self._anime else "Anime title not found"
 
     def get_similarity(self, anime1: str, anime2: str) -> float:
         """Return the similarity between anime1 and anime2.
@@ -201,7 +202,8 @@ class Graph:
             edge_sim = self._anime[edge[0]].calculate_similarity(self._anime[edge[1]])
 
             # TODO Need to be checked, this is real time calculation and needs to consider load static similarity data
-            edge_similarity.extend(["Similarity score: " + str(edge_sim) + " Between " + edge[0] + " and " + edge[1], None])
+            edge_similarity.extend(
+                [f'Similarity score: {edge_sim} Between {edge[0]} and {edge[1]}', None])
 
         return (x_edge_pos, y_edge_pos, (x_mid_pos, y_mid_pos), edge_similarity)
 
@@ -212,23 +214,24 @@ class Graph:
         """
         graph = nx.Graph()
         shell = [[anime_title], []]  # [[center of graph], [other nodes]]
-        Q = [(anime_title, 0)]  # title, depth
-        while len(Q) != 0:
-            cur = Q[0]
+        queue = [(anime_title, 0)]  # title, depth
+        while len(queue) != 0:
+            cur = queue[0]
             shell[1].append(cur[0])
-            Q.pop(0)
+            queue.pop(0)
             print(cur[0])
 
             for i in self.get_related_anime(cur[0], limit):
                 self.add_connection(graph, cur[0], i.title)
                 if cur[1] < depth:
-                    Q.append((i.title, cur[1] + 1))
+                    queue.append((i.title, cur[1] + 1))
 
         print(shell[0], shell[1])
         print(f"total node number: {len(shell[1])}")
 
         if 1 + limit ** depth > 3 and len(shell[1]) >= 2:
-            nxg = nx.drawing.nx_agraph.graphviz_layout(graph, prog="twopi", root=shell[0][0], args=shell[1])
+            nxg = nx.drawing.nx_agraph.graphviz_layout(graph, prog="twopi", root=shell[0][0],
+                                                       args=shell[1])
         else:
             nxg = nx.drawing.layout.spring_layout(graph)
             print(nxg[anime_title])
@@ -337,7 +340,8 @@ def load_from_serialized_data(file_name: str) -> Graph:
             anime_graph.add_anime(title, data[title])
 
         for title in data:
-            anime_graph._anime[title].neighbours = [anime_graph._anime[i] for i in data[title]["neighbours"]]
+            anime_graph._anime[title].neighbours = [anime_graph._anime[i] for i in
+                                                    data[title]['neighbours']]
             # count += 1
             # print(f"done {count}")
 
@@ -394,12 +398,12 @@ class FastGraph:
         return anime_graph
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     # t = time.process_time()
-    # G = FastGraph().load_anime_graph_multiprocess("data/full.json")
-    # G.serialize("data/full_graph.json")
+    # G = FastGraph().load_anime_graph_multiprocess('data/full.json')
+    # G.serialize('data/full_graph.json')
     # elapsed_time = time.process_time() - t
-    # print(f"process takes {elapsed_time} sec")
+    # print(f'process takes {elapsed_time} sec')
 
     import python_ta
     python_ta.check_all(config={
