@@ -12,7 +12,7 @@ import multiprocessing
 import time
 import plotly
 import networkx as nx
-from animee import Anime, NEIGHBOUR_LIMIT
+from anime import Anime, NEIGHBOUR_LIMIT
 import parse
 
 
