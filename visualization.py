@@ -61,10 +61,14 @@ def update_graph(name, depth, neighbour):
 
 @app.callback(
     Output("name", 'value'),
-    Input('connection-graph', 'clickData')
+    Input('connection-graph', 'clickData'),
+    Input("name", 'value')
 )
-def update_name(clickData):
-    return clickData['points'][0]['hovertext']
+def update_name(clickData, name):
+    if clickData is not None and clickData['points'][0]['hovertext'] != name:
+        return clickData['points'][0]['hovertext']
+    else:
+        return name
 
 
 if __name__ == '__main__':

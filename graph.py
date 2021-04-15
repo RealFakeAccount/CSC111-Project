@@ -220,7 +220,11 @@ class Graph:
         Preconditions,:
             - depth <= 5 # This will be handled by the slider on the website
         """
-        print([anime_title, depth, limit])
+        graph_layout = plotly.graph_objs.Layout(
+            showlegend=False,
+            xaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False},
+            yaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False}
+        )
 
         graph = nx.Graph()
         shell = [[anime_title], []]  # [[center of graph], [other nodes]]
@@ -234,16 +238,27 @@ class Graph:
                 for i in self.get_related_anime(cur[0], limit):
                     self.add_connection(graph, cur[0], i.title)
                     queue.append((i.title, cur[1] + 1))
-
+        
+        shell = [shell[0], list(set(shell[1]))]
         print(shell[0], shell[1])
         print(f'total node number: {len(shell[1])}')
 
         if 1 + limit ** depth > 3 and len(shell[1]) >= 2:
             # nxg = nx.drawing.nx_agraph.graphviz_layout(graph, prog="twopi", root=shell[0][0])
             nxg = nx.drawing.layout.shell_layout(graph, shell)
-        else:
+        elif 1 + limit ** depth <= 3 and len(shell[1]) >= 2:
             nxg = nx.drawing.layout.spring_layout(graph)
-            print(nxg[anime_title])
+        else:
+            single_node = plotly.graph_objs.Scatter(
+                x=[0],
+                y=[0],
+                hovertext=anime_title,
+                mode="markers",
+                name="nodes",
+                marker={'size': 50, 'color': 'Red'}
+            )
+            figure = plotly.graph_objs.Figure(data=single_node, layout=graph_layout)
+            return figure
 
         x_node_pos = [nxg[key][0] for key in graph.nodes if key != anime_title]
         y_node_pos = [nxg[key][1] for key in graph.nodes if key != anime_title]
@@ -296,12 +311,6 @@ class Graph:
         )
 
         all_traces.append(hover_trace)
-
-        graph_layout = plotly.graph_objs.Layout(
-            showlegend=False,
-            xaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False},
-            yaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False}
-        )
 
         figure = plotly.graph_objs.Figure(data=all_traces, layout=graph_layout)
 
