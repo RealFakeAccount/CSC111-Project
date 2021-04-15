@@ -234,8 +234,6 @@ class Graph:
 
         if 1 + limit ** depth > 3 and len(shell[1]) >= 2:
             nxg = nx.drawing.layout.shell_layout(graph, shell)
-        elif len(shell[1]) == 1:
-            ... # TODO cases
         else:
             nxg = nx.drawing.layout.spring_layout(graph)
             print(nxg[anime_title])
@@ -395,6 +393,8 @@ class Load_Graph_Fast:
 
 if __name__ == "__main__":
     t = time.process_time()
-    load_from_serialized_data("data/full_graph.json")
+    G = Load_Graph_Fast().load_anime_graph_multiprocess("data/data.json")
+    G.serialize("data/graph.json")
+    print(G._anime["Karakai Jouzou no (Moto) Takagi-san Special"].neighbours)
     elapsed_time = time.process_time() - t
     print(f"process takes {elapsed_time} sec")
