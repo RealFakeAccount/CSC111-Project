@@ -4,19 +4,17 @@ Forms of distribution of this code are allowed.
 For more information on copyright for CSC111 materials, please consult the Course Syllabus.
 
 Copyright (c) 2021 by Ching Chang, Letian Cheng, Arkaprava Choudhury, Hanrui Fan
-
-TODO: modify StrictGraph
-
-TODO: DiGraph for Simple and Graph for Strict???
 """
 
-from Anime import Anime, NEIGHBOUR_LIMIT
-import plotly
-from typing import Union, Optional
-import networkx as nx
+from typing import Union
 import json
-import multiprocessing, time
+import multiprocessing
+import time
+import plotly
+import networkx as nx
+from Anime import Anime, NEIGHBOUR_LIMIT
 import parse
+
 
 class Graph:
     """A graph of anime to represent the popularity and similarity network
@@ -107,7 +105,7 @@ class Graph:
         anime_list = list(self._anime.values())
         anime = self._anime[anime_name]
 
-        anime_list.sort(key = anime.calculate_similarity, reverse = True)
+        anime_list.sort(key=anime.calculate_similarity, reverse=True)
         anime.neighbours = anime_list[:NEIGHBOUR_LIMIT]
         self._anime[anime_name] = anime
 
@@ -204,7 +202,8 @@ class Graph:
 
             edge_sim = self._anime[edge[1]].calculate_similarity(self._anime[edge[0]])
 
-            edge_similarity.extend(["Similarity score: "+ str(edge_sim) + " Between " + edge[0] +" and " + edge[1], None]) # TODO Need to be checked, this is real time calculation and needs to consider load static similarity data
+            # TODO Need to be checked, this is real time calculation and needs to consider load static similarity data
+            edge_similarity.extend(["Similarity score: " + str(edge_sim) + " Between " + edge[0] + " and " + edge[1], None])
 
         return (x_edge_pos, y_edge_pos, (x_mid_pos, y_mid_pos), edge_similarity)
 
@@ -217,7 +216,7 @@ class Graph:
 
         graph = nx.Graph()
         shell = [[anime_title], []]  # [[center of graph], [other nodes]]
-        Q = [(anime_title, 0)] # title, depth
+        Q = [(anime_title, 0)]  # title, depth
         while len(Q) != 0:
             cur = Q[0]
             shell[1].append(cur[0])
@@ -228,7 +227,7 @@ class Graph:
                     self.add_connection(graph, cur[0], i.title)
                     Q.append((i.title, cur[1] + 1))
 
-        print(shell[0],shell[1])
+        print(shell[0], shell[1])
         print(f"total node number: {len(shell[1])}")
 
         if 1 + limit ** depth > 3 and len(shell[1]) >= 2:
@@ -245,7 +244,6 @@ class Graph:
         x_edge_pos, y_edge_pos, mid_pos, similarity = self._get_all_edges_pos(graph, nxg)
 
         all_traces = []
-
 
         central_node_trace = plotly.graph_objs.Scatter(
             x=[nxg[anime_title][0]],
@@ -281,9 +279,9 @@ class Graph:
         all_traces.append(edges_trace)
 
         hover_trace = plotly.graph_objs.Scatter(
-            x = mid_pos[0],
-            y = mid_pos[1],
-            hovertext = similarity,
+            x=mid_pos[0],
+            y=mid_pos[1],
+            hovertext=similarity,
             mode='markers',
             hoverinfo="text",
             marker={'size': 5, 'color': 'Black'}
@@ -348,10 +346,12 @@ def load_from_serialized_data(file_name: str) -> Graph:
 
     return anime_graph
 
-class Load_Graph_Fast:
+
+class FastGraph:
+    """TODO: finish docstring"""
     _anime: list[Anime]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._anime = list()
 
     def _calculate_neighbours(self, anime: Anime) -> Anime:
@@ -363,7 +363,7 @@ class Load_Graph_Fast:
             - anime in self._anime
         """
         anime_list = self._anime.copy()
-        anime_list.sort(key = anime.calculate_similarity, reverse = True)
+        anime_list.sort(key=anime.calculate_similarity, reverse=True)
         anime.neighbours = anime_list[:NEIGHBOUR_LIMIT]
         return anime
 
@@ -377,7 +377,7 @@ class Load_Graph_Fast:
         p.close()
         p.join()
 
-        return {anime_list[i].title:res[i] for i in range(0, len(anime_list))}
+        return {anime_list[i].title: res[i] for i in range(0, len(anime_list))}
 
     def load_anime_graph_multiprocess(self, file_name: str) -> Graph:
         """Return the anime graph corresponding to the given dataset
@@ -396,9 +396,19 @@ class Load_Graph_Fast:
         anime_graph._anime = self.calc_graph(anime_graph._anime)
         return anime_graph
 
+
 if __name__ == "__main__":
-    t = time.process_time()
-    G = Load_Graph_Fast().load_anime_graph_multiprocess("data/full.json")
-    G.serialize("data/full_graph.json")
-    elapsed_time = time.process_time() - t
-    print(f"process takes {elapsed_time} sec")
+    # t = time.process_time()
+    # G = FastGraph().load_anime_graph_multiprocess("data/full.json")
+    # G.serialize("data/full_graph.json")
+    # elapsed_time = time.process_time() - t
+    # print(f"process takes {elapsed_time} sec")
+
+    import python_ta
+    python_ta.check_all(config={
+        'max-line-length': 100,
+        'disable': ['E9999'],
+        # 'extra-imports': ['csv', 'networkx'],
+        # 'allowed-io': ['load_review_graph'],
+        'max-nested-blocks': 4
+    })
