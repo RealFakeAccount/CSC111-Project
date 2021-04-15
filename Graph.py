@@ -15,7 +15,7 @@ import plotly
 from typing import Union, Optional
 import networkx as nx
 import json
-import multiprocessing
+import multiprocessing, time
 import parse
 
 class Graph:
@@ -306,6 +306,7 @@ class Graph:
 
 def load_anime_graph(file_name: str) -> Graph:
     """Return the anime graph corresponding to the given dataset
+    WARNING: this function will roughly take one hour to run on the full dataset.
     Preconditions:
         - file_name is the path to a json file corresponding to the anime data
           format described in the project report
@@ -327,6 +328,7 @@ def load_anime_graph(file_name: str) -> Graph:
 
 def load_anime_graph_multiprocess(file_name: str) -> Graph:
     """Return the anime graph corresponding to the given dataset
+    On the full dataset, it takes about 4 mins using 3900x.
     Preconditions:
         - file_name is the path to a json file corresponding to the anime data
           format described in the project report
@@ -354,16 +356,22 @@ def load_from_serialized_data(file_name: str) -> Graph:
     """
     anime_graph = Graph()
 
-    count = 0
+    # count = 0
     with open(file_name) as json_file:
         data = json.load(json_file)
         for title in data:
-            anime_graph.add_anime(title, data[title])
-            count += 1
-            print(f"done {count}")
+            assert len(data[title]["neighbours"]) == 0
+            # anime_graph.add_anime(title, data[title])
+            # count += 1
+            # print(f"done {count}")
 
     return anime_graph
 
 if __name__ == "__main__":
-    G = load_anime_graph_multiprocess("data/full.json")
-    G.serialize("data/full_graph.json")
+    # G = load_anime_graph_multiprocess("data/full.json")
+    # G.serialize("data/full_graph.json")
+    
+    t = time.process_time()
+    load_from_serialized_data("data/full_graph.json")
+    elapsed_time = time.process_time() - t
+    print(f"deserialization takes {elapsed_time} sec")
