@@ -252,8 +252,8 @@ class Graph:
             print(cur[0])
             if cur[1] < depth:
                 for i in self.get_related_anime(cur[0], limit):
-                    self.add_connection(graph, cur[0], i)
-                    queue.append((i, cur[1] + 1))
+                    self.add_connection(graph, cur[0], i.title)
+                    queue.append((i.title, cur[1] + 1))
 
         shell = [shell[0], list(set(shell[1]))]
         print(shell[0], shell[1])
