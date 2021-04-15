@@ -10,15 +10,13 @@ TODO: modify StrictGraph
 TODO: DiGraph for Simple and Graph for Strict???
 """
 
-from Anime import Anime
+from Anime import Anime, NEIGHBOUR_LIMIT
 import plotly
 from typing import Union, Optional
 import networkx as nx
 import json
 import multiprocessing
 import parse
-
-MAX_NEIGHBOURS = 20
 
 class Graph:
     """A graph of anime to represent the popularity and similarity network
@@ -28,7 +26,6 @@ class Graph:
     _anime: dict[str, Anime]
 
     def __init__(self) -> None:
-        print("qwq")
         self._anime = dict()
 
     def add_anime(self, title: str, data: dict[str, Union[str, list[str]]]) -> None:
@@ -118,9 +115,6 @@ class Graph:
         for show in self._anime.values():
             if show not in visited:
                 self._insert_neighbour(self._anime[anime_name], show)
-
-        if len(self._anime[anime_name].neighbours) > MAX_NEIGHBOURS:
-            self._anime[anime_name].neighbours = self._anime[anime_name].neighbours[:MAX_NEIGHBOURS]
 
     def serialize(self, output_file: str) -> None:
         """Save the neighbours of each Anime in this graph into an output file
@@ -232,11 +226,13 @@ class Graph:
                 if cur[1] < depth:
                     Q.append((i.title, cur[1] + 1))
 
-        print(shell[1])
+        print(shell[0],shell[1])
         print(len(shell[1]))
 
         if 1 + limit ** depth > 3 and len(shell[1]) >= 2:
             nxg = nx.drawing.layout.shell_layout(graph, shell)
+        elif len(shell[1]) == 1:
+            ... # TODO cases
         else:
             nxg = nx.drawing.layout.spring_layout(graph)
             print(nxg[anime_title])
@@ -321,6 +317,27 @@ def load_anime_graph(file_name: str) -> Graph:
         for title in data:
             anime_graph.add_anime(title, data[title])
 
+    count = 0
+    for anime_name in anime_graph.get_all_anime():
+        anime_graph.calculate_neighbours(anime_name)
+        count += 1
+        print(f"done {count}")
+
+    return anime_graph
+
+def load_anime_graph_multiprocess(file_name: str) -> Graph:
+    """Return the anime graph corresponding to the given dataset
+    Preconditions:
+        - file_name is the path to a json file corresponding to the anime data
+          format described in the project report
+    """
+    anime_graph = Graph()
+    
+    with open(file_name) as json_file:
+        data = json.load(json_file)
+        for title in data:
+            anime_graph.add_anime(title, data[title])
+
     p = multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1)
 
     p.map(anime_graph.calculate_neighbours, anime_graph.get_all_anime())
@@ -328,7 +345,6 @@ def load_anime_graph(file_name: str) -> Graph:
     p.join()
 
     return anime_graph
-
 
 def load_from_serialized_data(file_name: str) -> Graph:
     """Return the anime graph corresponding to the given serialized dataset
@@ -348,17 +364,6 @@ def load_from_serialized_data(file_name: str) -> Graph:
 
     return anime_graph
 
-# if __name__ == "__main__":
-#     import python_ta
-#     python_ta.check_all(config={
-#         'max-line-length': 100,
-#         'disable': ['E1136'],
-#         'extra-imports': ['a1_linked_list'],
-#         'max-nested-blocks': 4
-#     })
-#
-#     import python_ta.contracts
-#     python_ta.contracts.check_all_contracts()
-#
-#     import doctest
-#     doctest.testmod()
+if __name__ == "__main__":
+    G = load_anime_graph_multiprocess("data/full.json")
+    G.serialize("data/full_graph.json")

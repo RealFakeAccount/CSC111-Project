@@ -122,9 +122,10 @@ class Anime:
         """bleh"""
         self.neighbours.append(anime)
         self.neighbours.sort(key=self.calculate_similarity, reverse=True)
+        self.neighbours = self.neighbours[:NEIGHBOUR_LIMIT]
 
         # TODO: do we need the following line at all?
-        # self.neighbours = self.neighbours[:NEIGHBOUR_LIMIT]
+        # 
 
         # if self.neighbours == []:
         #     self.neighbours.append(anime)
