@@ -393,8 +393,7 @@ class Load_Graph_Fast:
 
 if __name__ == "__main__":
     t = time.process_time()
-    G = Load_Graph_Fast().load_anime_graph_multiprocess("data/data.json")
-    G.serialize("data/graph.json")
+    G = load_from_serialized_data("data/graph.json")
     print(G._anime["Karakai Jouzou no (Moto) Takagi-san Special"].neighbours)
     elapsed_time = time.process_time() - t
     print(f"process takes {elapsed_time} sec")
