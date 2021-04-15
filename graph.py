@@ -81,9 +81,9 @@ class Graph:
             - anime in self._anime
         """
         if reaction == 'upvote':
-            anime.set_tag_weighting(tag, anime.get_tags()[tag] * 1.1)
+            anime.set_tag_weighting(tag, anime.get_tag_weight(tag) * 1.1)
         else:
-            anime.set_tag_weighting(tag, anime.get_tags()[tag] * 0.9)
+            anime.set_tag_weighting(tag, anime.get_tag_weight(tag) * 0.9)
 
     def adjust_weighting_v2(self, anime1: Anime, anime2: Anime, reaction: str = 'upvote') -> None:
         """
@@ -122,7 +122,8 @@ class Graph:
                 'url': self._anime[anime_name].url,
                 'thumbnail': self._anime[anime_name].thumbnail,
                 'detail': self._anime[anime_name].detail,
-                'tags': self._anime[anime_name].get_tags()
+                'tags': {tag: self._anime[anime_name].get_tag_weight(tag) for tag in
+                         self._anime[anime_name].get_all_tags()}
             }
             for neighbour in self._anime[anime_name].neighbours:
                 neighbours[anime_name]['neighbours'].append(neighbour.title)
@@ -147,10 +148,10 @@ class Graph:
     def _get_prediction_weights(self, curr_anime: Anime, past_choices: list[tuple[Anime, Anime]]) \
             -> dict[str, float]:
         """Get the weightings required to make the predictions"""
-        prediction_weights = {tag: 1 for tag in curr_anime.get_tags()}
+        prediction_weights = {tag: 1 for tag in curr_anime.get_all_tags()}
         for pair in past_choices:
-            for tag in curr_anime.get_tags():
-                if tag in pair[0].get_tags() and tag in pair[1].get_tags():
+            for tag in curr_anime.get_all_tags():
+                if tag in pair[0].get_all_tags() and tag in pair[1].get_all_tags():
                     prediction_weights[tag] += 1
         return prediction_weights
 

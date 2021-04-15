@@ -78,12 +78,6 @@ class Anime:
         """
         return set(self._tags)
 
-    def get_tags(self) -> dict[str, float]:
-        """
-        Return the tags and their weights attached to this anime.
-        """
-        return self._tags
-
     def get_tag_weight(self, tag: str) -> float:
         """
         Return the tags and their weights attached to this anime.
