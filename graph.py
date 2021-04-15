@@ -6,7 +6,7 @@ For more information on copyright for CSC111 materials, please consult the Cours
 Copyright (c) 2021 by Ching Chang, Letian Cheng, Arkaprava Choudhury, Hanrui Fan
 """
 
-from typing import Union
+from typing import Union, Optional, Any
 import json
 import multiprocessing
 import time
@@ -155,7 +155,7 @@ class Graph:
                     prediction_weights[tag] += 1
         return prediction_weights
 
-    def get_related_anime(self, anime_title: str, limit: int = 5) -> list[Anime]:
+    def get_related_anime(self, anime_title: str, limit: int = 5) -> list[str]:
         """Return a list of up to <limit> anime that are related to the given anime,
         ordered by their similarity in descending order.
         The similarity is explained in the project report and in the Anime.py file.
@@ -180,7 +180,11 @@ class Graph:
             graph.add_node(det_anime_title, kind=str)
             graph.add_edge(cur_anime_title, det_anime_title)
 
-    def _get_all_edges_pos(self, graph: nx.Graph, nxg: dict):
+    # TODO might want to be more specific
+    def _get_all_edges_pos(self, graph: nx.Graph, nxg: dict) -> tuple[
+        list[Optional[Any]], list[Optional[Any]], tuple[
+            list[Union[Optional[float], Any]], list[Union[Optional[float], Any]]], list[
+            Optional[str]]]:
         """Get all edges position in networkx graph and return a tuple of edges position in x-y
         dimension
         """
@@ -204,7 +208,8 @@ class Graph:
 
             edge_sim = self._anime[edge[1]].calculate_similarity(self._anime[edge[0]])
 
-            # TODO Need to be checked, this is real time calculation and needs to consider load static similarity data
+            # TODO Need to be checked, this is real time calculation and needs
+            # to consider load static similarity data
             edge_similarity.extend(
                 [f'Similarity score: {edge_sim} Between {edge[0]} and {edge[1]}', None])
 
@@ -231,7 +236,7 @@ class Graph:
                     queue.append((i.title, cur[1] + 1))
 
         print(shell[0], shell[1])
-        print(f"total node number: {len(shell[1])}")
+        print(f'total node number: {len(shell[1])}')
 
         if 1 + limit ** depth > 3 and len(shell[1]) >= 2:
             # nxg = nx.drawing.nx_agraph.graphviz_layout(graph, prog="twopi", root=shell[0][0])
@@ -336,7 +341,6 @@ def load_from_serialized_data(file_name: str) -> Graph:
     """
     anime_graph = Graph()
 
-    # count = 0
     with open(file_name) as json_file:
         data = json.load(json_file)
         for title in data:
@@ -345,8 +349,6 @@ def load_from_serialized_data(file_name: str) -> Graph:
         for title in data:
             anime_graph._anime[title].neighbours = [anime_graph._anime[i] for i in
                                                     data[title]['neighbours']]
-            # count += 1
-            # print(f"done {count}")
 
     return anime_graph
 
@@ -371,10 +373,11 @@ class FastGraph:
         anime.neighbours = anime_list[:NEIGHBOUR_LIMIT]
         return anime
 
-    def calc_graph(self, anime_dic: dict[str, Anime]) -> dict[str, Anime]:
+    def calculate_graph(self, anime_dic: dict[str, Anime]) -> dict[str, Anime]:
         """ input is a uncalculated anime graph
         return a calculated anime graph
         """
+        # FIXME use mutation instead of reassignment
         self._anime, anime_list = list(anime_dic.values()), list(anime_dic.values())
         p = multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1)
         res = p.map(self._calculate_neighbours, anime_list)
@@ -397,7 +400,7 @@ class FastGraph:
             for title in data:
                 anime_graph.add_anime(title, data[title])
 
-        anime_graph._anime = self.calc_graph(anime_graph._anime)
+        anime_graph._anime = self.calculate_graph(anime_graph._anime)
         return anime_graph
 
 
@@ -412,7 +415,6 @@ if __name__ == '__main__':
     python_ta.check_all(config={
         'max-line-length': 100,
         'disable': ['E9999'],
-        # 'extra-imports': ['csv', 'networkx'],
-        # 'allowed-io': ['load_review_graph'],
+        # 'allowed-io': ['serialize'],
         'max-nested-blocks': 4
     })
