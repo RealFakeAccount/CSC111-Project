@@ -13,7 +13,6 @@ from typing import Union
 import networkx as nx
 import json
 import multiprocessing
-import time
 import parse
 
 
@@ -223,17 +222,17 @@ class Graph:
 
         graph = nx.Graph()
         shell = [[anime_title], []]  # [[center of graph], [other nodes]]
-        Q = [(anime_title, 0)]  # title, depth
-        while len(Q) != 0:
-            cur = Q[0]
+        queue = [(anime_title, 0)]  # title, depth
+        while len(queue) != 0:
+            cur = queue[0]
             shell[1].append(cur[0])
-            Q.pop(0)
+            queue.pop(0)
             print(cur[0])
 
             for i in self.get_related_anime(cur[0], limit):
                 self.add_connection(graph, cur[0], i.title)
                 if cur[1] < depth:
-                    Q.append((i.title, cur[1] + 1))
+                    queue.append((i.title, cur[1] + 1))
 
         print(shell[0], shell[1])
         print(f"total node number: {len(shell[1])}")
@@ -292,7 +291,6 @@ class Graph:
             mode='markers',
             hoverinfo="text",
             marker={'size': 5, 'color': 'Black'}
-
         )
 
         all_traces.append(hover_trace)
@@ -440,13 +438,23 @@ class LoadGraphFast:
             for title in data:
                 anime_graph.add_anime(title, data[title])
 
-        return self.calc_graph(anime_graph)
+        anime_graph._anime = self.calc_graph(anime_graph._anime)
+        return anime_graph
 
 
 if __name__ == "__main__":
-    t = time.process_time()
-    G = load_from_serialized_data("data/graph.json")
-    assert "Karakai Jouzou no (Moto) Takagi-san Special" in G._anime
-    print(G._anime["Karakai Jouzou no (Moto) Takagi-san Special"].neighbours)
-    elapsed_time = time.process_time() - t
-    print(f"process takes {elapsed_time} sec")
+    # import time
+    # t = time.process_time()
+    # G = load_from_serialized_data("data/graph.json")
+    # assert "Karakai Jouzou no (Moto) Takagi-san Special" in G._anime
+    # print(G._anime["Karakai Jouzou no (Moto) Takagi-san Special"].neighbours)
+    # elapsed_time = time.process_time() - t
+    # print(f"process takes {elapsed_time} sec")
+    import python_ta
+    python_ta.check_all(config={
+        'max-line-length': 100,
+        'disable': ['E9999'],
+        # 'extra-imports': ['csv', 'networkx'],
+        # 'allowed-io': ['load_review_graph'],
+        'max-nested-blocks': 4
+    })
