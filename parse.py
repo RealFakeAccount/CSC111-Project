@@ -28,7 +28,8 @@ def parse_json(file_name: str, output_file: str, verbose=True, start=12500, end=
                 'detail': description
             }
             if verbose:
-                print(f'{round((i - start) / (end - start) * 100, 2)}%')
+                e = min(end, len(data['data']))
+                print(f'{round((i - start) / (e - start) * 100, 2)}%')
 
         with open(output_file, 'w') as new_file:
             json.dump(new_data, new_file)
@@ -60,3 +61,4 @@ def get_anime_description(url: str) -> str:
 
 if __name__ == "__main__":
     parse_json("data/original.json", "full.json", True, 0, 40000)
+    parse_json("data/original.json", "small.json", True)
