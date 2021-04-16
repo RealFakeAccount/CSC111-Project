@@ -267,13 +267,13 @@ class Graph:
         queue = [(anime_title, 0)]  # title, depth
         while len(queue) != 0:
             cur = queue[0]
-            shell[1].append(cur[0])
             queue.pop(0)
-            print(cur[0])
 
             for i in self.get_related_anime(cur[0], limit):
                 if i.title in visited: continue
                 visited.add(i.title)
+
+                shell[1].append(i.title)
                 self.add_connection(graph, cur[0], i.title)
                 if cur[1] < depth:
                     queue.append((i.title, cur[1] + 1))
@@ -286,6 +286,8 @@ class Graph:
         else:
             nxg = nx.drawing.layout.spring_layout(graph)
             print(nxg[anime_title])
+
+        print(f"key: {[key for key in graph.nodes]}")
 
         x_node_pos = [nxg[key][0] for key in graph.nodes if key != anime_title]
         y_node_pos = [nxg[key][1] for key in graph.nodes if key != anime_title]
