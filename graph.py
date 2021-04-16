@@ -294,7 +294,8 @@ class Graph:
         graph_layout = plotly.graph_objs.Layout(
             showlegend=False,
             xaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False},
-            yaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False}
+            yaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False},
+            height=1000
         )
 
         visited = set(anime_title)
