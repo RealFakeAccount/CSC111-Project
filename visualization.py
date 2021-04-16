@@ -18,7 +18,14 @@ ele = [
 
     # Text Input
     html.Label("Text Input"),
-    dcc.Input(id="name", value="Karakai Jouzou no (Moto) Takagi-san Special", type="text"),
+    dcc.Dropdown(
+        id="name",
+        options=[
+            {'label': i, 'value': i} for i in G.get_all_anime()
+        ],
+        value = "40meterP: Color of Drops",
+        placeholder="40meterP: Color of Drops",
+    ),
 
     # slider
     html.Label('Slider of Depth'),
@@ -31,7 +38,7 @@ ele = [
     # Graph
     dcc.Graph(
         id="connection-graph",
-        figure=G.draw_graph("Karakai Jouzou no (Moto) Takagi-san Special", 1, 1)
+        figure=G.draw_graph("40meterP: Color of Drops", 1, 1)
         # figure = Figure(data=px.line(x=["a","b","c"], y=[1,3,2], title="sample figure"))
     ),
 
@@ -39,7 +46,7 @@ ele = [
     dcc.Markdown(id="description title", children="""
     ### Anime description:
     """),
-    dcc.Markdown(id="description", children=G.get_anime_description("Karakai Jouzou no (Moto) Takagi-san Special"))
+    dcc.Markdown(id="description", children=G.get_anime_description("40meterP: Color of Drops"))
 ]
 app.layout = html.Div(children=ele)
 
@@ -48,7 +55,7 @@ app.layout = html.Div(children=ele)
 @app.callback(
     Output("connection-graph", 'figure'),
     Output("description", "children"),
-    Input("name", "value"),
+    [Input("name", "value")],
     Input("depth", "value"),
     Input("neighbour", "value")
 )
