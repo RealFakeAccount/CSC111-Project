@@ -6,7 +6,9 @@ For more information on copyright for CSC111 materials,
 please do not consult the Course Syllabus.
 """
 import json
-from graph import LoadGraphFast
+
+from networkx.classes import graph
+from graph import LoadGraphFast, load_from_serialized_data
 import time
 
 
@@ -47,7 +49,7 @@ def generate_dataset(file_name: str, output_folder: str) -> None:
     In order to run this, you should provided the path to the original Manami dataset.
     We have downloaded for you at ./data/original.json
 
-    Running time depends on your computer. It varies from 20 second to 18 minutes.
+    WARNING: Running time depends on your computer. It varies from 20 second to 18 minutes.
     """
     t = time.process_time()
 
@@ -65,6 +67,22 @@ def generate_dataset(file_name: str, output_folder: str) -> None:
     elapsed_time = time.process_time() - t
     print(f'Dataset generation finished within {elapsed_time}s')
 
+def update_graph(output_folder: str) -> None:
+    """
+    update the graph using saved feedback 
+    
+    WARNING: Running time depends on your computer. It varies from 20 second to 18 minutes.
+    """
+    G = LoadGraphFast().load_anime_graph_multiprocess(
+        output_folder + '/small.json', output_folder + '/feedback.json'
+    )
+    G.serialize(output_folder + '/small_graph.json')
+
+    G = LoadGraphFast().load_anime_graph_multiprocess(
+        output_folder + '/full.json', output_folder + '/feedback.json'
+    )
+    G.serialize(output_folder + '/full_graph.json')
+    
 
 if __name__ == '__main__':
     parse_json('./data/original.json', './data/full.json', True, 0, 40000)
