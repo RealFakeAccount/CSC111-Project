@@ -234,9 +234,6 @@ class Graph:
         Preconditions,:
             - depth <= 5 # This will be handled by the slider on the website
         """
-        # edge = dict()  # dict[Tuple[str, str], float]
-        # node = dict()
-
         graph = nx.Graph()
         shell = [[anime_title], []]  # [[center of graph], [other nodes]]
         queue = [(anime_title, 0)]  # title, depth
