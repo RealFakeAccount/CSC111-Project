@@ -202,7 +202,7 @@ class Graph:
                     prediction_weights[tag] += 1
         return prediction_weights
 
-    def get_related_anime(self, anime_title: str, limit: int = 5) -> list[Anime]:
+    def get_related_anime(self, anime_title: str, limit: int = 5, visited: set = set()) -> list[Anime]:
         """Return a list of up to <limit> anime that are related to the given anime,
         ordered by their similarity in descending order.
         The similarity is explained in the project report and in the Anime.py file.
@@ -210,10 +210,12 @@ class Graph:
         """
         if anime_title in self._anime:
             anime = self._anime[anime_title]
-            if len(anime.neighbours) > limit:
-                return [self._anime[anime.neighbours[i].title] for i in range(limit)]
-            else:
-                return [self._anime[neighbour.title] for neighbour in anime.neighbours]
+
+            res = []
+            for i in range(NEIGHBOUR_LIMIT):
+                if anime.neighbours[i].title not in visited and len(res) < limit:
+                    res.append(self._anime[anime.neighbours[i].title])
+            return res
         else:
             raise ValueError
 
@@ -261,6 +263,12 @@ class Graph:
         Preconditions,:
             - depth <= 5 # This will be handled by the slider on the website
         """
+        graph_layout = plotly.graph_objs.Layout(
+            showlegend=False,
+            xaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False},
+            yaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False}
+        )
+
         visited = set(anime_title)
         graph = nx.Graph()
         shell = [[anime_title], []]  # [[center of graph], [other nodes]]
@@ -269,23 +277,31 @@ class Graph:
             cur = queue[0]
             queue.pop(0)
 
-            for i in self.get_related_anime(cur[0], limit):
+            for i in self.get_related_anime(cur[0], limit= limit, visited=visited):
                 if i.title in visited: continue
                 visited.add(i.title)
 
                 shell[1].append(i.title)
                 self.add_connection(graph, cur[0], i.title)
-                if cur[1] < depth:
+                if cur[1] < depth - 1:
                     queue.append((i.title, cur[1] + 1))
 
         print(shell[0], shell[1])
         print(f"total node number: {len(shell[1])}")
 
-        if 1 + limit ** depth > 3 and len(shell[1]) >= 2:
-            nxg = nx.drawing.layout.shell_layout(graph, shell)
-        else:
+        if shell[0] != shell[1]:
             nxg = nx.drawing.layout.spring_layout(graph)
-            print(nxg[anime_title])
+        else:
+            single_node = plotly.graph_objs.Scatter(
+                x=[0],
+                y=[0],
+                hovertext=anime_title,
+                mode="markers",
+                name="nodes",
+                marker={'size': 25, 'color': 'Red'}
+            )
+            figure = plotly.graph_objs.Figure(data=single_node, layout=graph_layout)
+            return figure
 
         print(f"key: {[key for key in graph.nodes]}")
 
@@ -303,7 +319,7 @@ class Graph:
             hovertext=anime_title,
             mode="markers",
             name="nodes",
-            marker={'size': 50, 'color': 'Red'}
+            marker={'size': 25, 'color': 'Red'}
         )
 
         all_traces.append(central_node_trace)
@@ -314,7 +330,7 @@ class Graph:
             hovertext=node_hover,
             mode="markers",
             name="nodes",
-            marker={'size': 50, 'color': 'LightSkyBlue'}
+            marker={'size': 25, 'color': 'LightSkyBlue'}
         )
 
         all_traces.append(nodes_trace)
@@ -340,12 +356,6 @@ class Graph:
         )
 
         all_traces.append(hover_trace)
-
-        graph_layout = plotly.graph_objs.Layout(
-            showlegend=False,
-            xaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False},
-            yaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False}
-        )
 
         figure = plotly.graph_objs.Figure(data=all_traces, layout=graph_layout)
 
@@ -486,13 +496,13 @@ class LoadGraphFast:
 if __name__ == "__main__":
     # import time
     # t = time.process_time()
-    G = load_from_serialized_data("data/full_graph.json")
-    print(sum(len(i._tags) == 0 for i in G._anime.values()))
+    # G = load_from_serialized_data("data/full_graph.json")
+    # print(sum(len(i._tags) == 0 for i in G._anime.values()))
     # elapsed_time = time.process_time() - t
     # print(f"process takes {elapsed_time} sec")
-    # import python_ta
-    # python_ta.check_all(config={
-    #     'max-line-length': 100,
-    #     'disable': ['E9999', 'E9998'],
-    #     'max-nested-blocks': 4
-    # })
+    import python_ta
+    python_ta.check_all(config={
+        'max-line-length': 100,
+        'disable': ['E9999', 'E9998'],
+        'max-nested-blocks': 4
+    })
