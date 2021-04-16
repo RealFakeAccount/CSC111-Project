@@ -217,7 +217,7 @@ class Graph:
         Preconditions:
             - all(len(lst) == 2 for lst in past_choices)
         """
-        prediction_weights = {tag: 1 for tag in curr_anime.get_all_tags()}
+        prediction_weights = {initial_tag: 1 for initial_tag in curr_anime.get_all_tags()}
         for pair in past_choices:
             for tag in curr_anime.get_all_tags():
                 if tag in pair[0].get_all_tags() and tag in pair[1].get_all_tags():

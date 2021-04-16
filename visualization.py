@@ -72,9 +72,9 @@ def update_graph(name, depth, neighbour) -> tuple[Anime, str]:
     Input('connection-graph', 'clickData'),
     Input('name', 'value')
 )
-def update_name(clickData, name):
-    if clickData is not None and clickData['points'][0]['hovertext'] != name:
-        return clickData['points'][0]['hovertext']
+def update_name(click_data, name):
+    if click_data is not None and click_data['points'][0]['hovertext'] != name:
+        return click_data['points'][0]['hovertext']
     else:
         return name
 
