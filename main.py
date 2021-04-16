@@ -8,7 +8,7 @@ Copyright (c) 2021 by Ching Chang, Letian Cheng, Arkaprava Choudhury, Hanrui Fan
 
 
 import parse
-from graph import FastGraph
+from graph import LoadGraphFast
 import time
 
 
@@ -26,10 +26,10 @@ def generate_dataset(file_name: str, output_folder: str) -> None:
     parse.parse_json(file_name, output_folder + "/full.json", True, 0, 40000)
     parse.parse_json(file_name, output_folder + "/small.json", True)
 
-    graph = FastGraph().load_anime_graph_multiprocess(output_folder + "/small.json")
+    graph = LoadGraphFast().load_anime_graph_multiprocess(output_folder + "/small.json")
     graph.serialize(output_folder + "/small_graph.json")
 
-    graph = FastGraph().load_anime_graph_multiprocess(output_folder + "/full.json")
+    graph = LoadGraphFast().load_anime_graph_multiprocess(output_folder + "/full.json")
     graph.serialize(output_folder + "/full_graph.json")
 
     elapsed_time = time.process_time() - t
