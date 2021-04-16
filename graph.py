@@ -9,10 +9,11 @@ from typing import Union, Optional
 import json
 import multiprocessing
 import os
+import requests
+from bs4 import BeautifulSoup
 import plotly
 import networkx as nx
 from anime import Anime, NEIGHBOUR_LIMIT
-import parse
 
 MAX_HISTORY_LIMIT = 10
 
@@ -54,12 +55,32 @@ class Graph:
         """
         return list(self._anime)
 
-    def get_anime_description(self, title: str) -> str:
-        """Return the name of one anime.
-        Return an empty string if not found
+    def get_anime_description(self, anime_title: str) -> str:
+        """Get the description/synopsis of the given anime
         """
-        return parse.get_anime_description(
-            self._anime[title].url) if title in self._anime else "Anime title not found"
+        if anime_title in self._anime:
+            url = self._anime[anime_title].url
+            page = requests.get(url, headers={
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'
+            })
+            soup = BeautifulSoup(page.content, 'html.parser')
+            if url.startswith('https://anidb.net'):
+                detail_raw = soup.find(itemprop='description')
+            elif url.startswith('https://myanimelist.net'):
+                detail_raw = soup.find(itemprop='description')
+            elif url.startswith(' https://kitsu.io'):
+                detail_raw = soup.find(id='ember66')
+            elif url.startswith('https://anime-planet.com'):
+                detail_raw = soup.find('div', class_='md-3-5').find('p')
+            else:
+                detail_raw = None
+
+            if detail_raw is not None:
+                return detail_raw.text
+            else:
+                return 'No details found for this anime'
+        else:
+            return 'Anime title not found'
 
     def get_similarity(self, anime1: str, anime2: str) -> float:
         """Return the similarity between anime1 and anime2.
