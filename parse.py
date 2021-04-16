@@ -14,11 +14,14 @@ def parse_json(file_name: str, output_file: str, verbose: bool = True, start: in
                end: int = 13500) -> None:
     """Parse the anime dataset from file_name and write the output to output_file"""
     new_data = {}
-
+    cnt_skip = 0
     with open(file_name) as original_file:
         data = json.load(original_file)
         for i in range(start, min(end, len(data['data']))):
             anime = data['data'][i]
+            if len(anime['tags']) == 0: 
+                cnt_skip += 1
+                continue # remove the anime with 0 tags
             description = ''  # get_anime_description(anime['sources'][0])
 
             new_data[anime['title']] = {
@@ -33,6 +36,7 @@ def parse_json(file_name: str, output_file: str, verbose: bool = True, start: in
                 print(f'{round((i - start) / (e - start) * 100, 2)}%')
 
         with open(output_file, 'w') as new_file:
+            print(f"Writing to {output_file}.. {cnt_skip} are skipped because of 0 tag")
             json.dump(new_data, new_file)
 
 

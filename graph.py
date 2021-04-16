@@ -486,14 +486,13 @@ class LoadGraphFast:
 if __name__ == "__main__":
     # import time
     # t = time.process_time()
-    # G = load_from_serialized_data("data/graph.json")
-    # assert "Karakai Jouzou no (Moto) Takagi-san Special" in G._anime
-    # print(G._anime["Karakai Jouzou no (Moto) Takagi-san Special"].neighbours)
+    G = load_from_serialized_data("data/full_graph.json")
+    print(sum(len(i._tags) == 0 for i in G._anime.values()))
     # elapsed_time = time.process_time() - t
     # print(f"process takes {elapsed_time} sec")
-    import python_ta
-    python_ta.check_all(config={
-        'max-line-length': 100,
-        'disable': ['E9999', 'E9998'],
-        'max-nested-blocks': 4
-    })
+    # import python_ta
+    # python_ta.check_all(config={
+    #     'max-line-length': 100,
+    #     'disable': ['E9999', 'E9998'],
+    #     'max-nested-blocks': 4
+    # })
