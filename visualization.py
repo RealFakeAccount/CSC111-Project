@@ -6,6 +6,7 @@ from dash_html_components.Label import Label
 from plotly.graph_objs import Scatter, Figure
 import plotly.express as px
 import graph
+from anime import Anime
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
@@ -51,7 +52,6 @@ ele = [
 app.layout = html.Div(children=ele)
 
 
-
 @app.callback(
     Output('connection-graph', 'figure'),
     Output('description', 'children'),
@@ -59,12 +59,13 @@ app.layout = html.Div(children=ele)
     Input('depth', 'value'),
     Input('neighbour', 'value')
 )
-def update_graph(name, depth, neighbour):
+def update_graph(name, depth, neighbour) -> tuple[Anime, str]:
     """change the graph and whatever based on the user input
     """
     global G
     print(f'{name}, {depth}, {neighbour}')
     return G.draw_graph(name, depth, neighbour), G.get_anime_description(name)
+
 
 @app.callback(
     Output('name', 'value'),

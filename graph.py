@@ -8,11 +8,11 @@ Copyright (c) 2021 by Ching Chang, Letian Cheng, Arkaprava Choudhury, Hanrui Fan
 from typing import Union, Optional
 import json
 import multiprocessing
+import os
 import plotly
 import networkx as nx
 from anime import Anime, NEIGHBOUR_LIMIT
 import parse
-import os
 
 MAX_HISTORY_LIMIT = 10
 
@@ -234,7 +234,9 @@ class Graph:
             graph.add_node(det_anime_title, kind=str)
             graph.add_edge(cur_anime_title, det_anime_title)
 
-    def _get_all_edges_pos(self, graph: nx.Graph, nxg: dict):
+    def _get_all_edges_pos(self, graph: nx.Graph, nxg: dict) -> tuple[
+            list[list], list[list], tuple[list[Optional[float]], list[Optional[float]]], list[
+                Optional[str]]]:
         """Get all edges position in networkx graph and return a tuple of edges position in x-y
         dimension
         """
@@ -308,7 +310,7 @@ class Graph:
             figure = plotly.graph_objs.Figure(data=single_node, layout=graph_layout)
             return figure
 
-        print(f"key: {[key for key in graph.nodes]}")
+        print(f"key: {list(graph.nodes)}")
 
         x_node_pos = [nxg[key][0] for key in graph.nodes if key != anime_title]
         y_node_pos = [nxg[key][1] for key in graph.nodes if key != anime_title]
@@ -508,6 +510,6 @@ if __name__ == "__main__":
     import python_ta
     python_ta.check_all(config={
         'max-line-length': 100,
-        'disable': ['E9999', 'E9998'],
+        'disable': ['E9999', 'E9998', 'E1136'],
         'max-nested-blocks': 4
     })
