@@ -253,7 +253,7 @@ class Graph:
             edge_sim = self._anime[edge[0]].calculate_similarity(self._anime[edge[1]])
 
             edge_similarity.extend(
-                [f'Similarity score: {edge_sim} Between {edge[0]} and {edge[1]}', None])
+                [f'Similarity Score: {edge_sim} Between {edge[0]} and {edge[1]}', None])
             # TODO Need to be checked, this is real time calculation and needs to consider load
             #  static similarity data
 
@@ -268,7 +268,7 @@ class Graph:
             showlegend=False,
             xaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False},
             yaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False},
-            height=1000
+            height=1080
         )
 
         visited = set(anime_title)
@@ -318,7 +318,7 @@ class Graph:
         central_node_trace = plotly.graph_objs.Scatter(
             x=[nxg[anime_title][0]],
             y=[nxg[anime_title][1]],
-            hovertext=anime_title,
+            hovertext=[anime_title],
             mode="markers",
             name="nodes",
             marker={'size': 25, 'color': 'Red'}
@@ -352,6 +352,7 @@ class Graph:
             x=mid_pos[0],
             y=mid_pos[1],
             hovertext=similarity,
+            name='similarity',
             mode='markers',
             hoverinfo="text",
             marker={'size': 5, 'color': 'Black'}
