@@ -19,10 +19,11 @@ MAX_HISTORY_LIMIT = 10
 
 class Graph:
     """A graph of anime to represent the popularity and similarity network
+
+    Private Instance Attributes:
+        - _anime: A collection of the anime contained in this graph
+        - _feedback: A list of tuples containing users' feedback
     """
-    # Private Instance Attributes:
-    #   - _anime: A collection of the anime contained in this graph
-    #   - _feedback: A list of tuples containing users' feedback
     _anime: dict[str, Anime]
     _feedback: list[tuple[Anime, Anime, str]]
 
