@@ -13,19 +13,26 @@ import time
 
 
 def generate_dataset(file_name: str, output_folder: str) -> None:
-    """ Although dataset have been generated and provide in data.zip, TAs might still want to generate dataset from scratch.
-    If this is the case, please run this function.
+    """ The datasets are already provided in data.zip, but run this if you want to generate
+    the dataset from scratch.
 
     In order to run this, you should provided the path to the original Manami dataset.
-    We have downloaded for you, which is called original.json in ./data
+    We have downloaded for you at ./data/original.json
 
-    Running time depends on your computer. It will varies from 20 second to 18 minutes.
+    Running time depends on your computer. It varies from 20 second to 18 minutes.
     """
     t = time.process_time()
 
-    parse.parse_json(file_name, output_folder + "/full.json", True, 0, 40000)
-    parse.parse_json(file_name, output_folder + "/small.json", True)
+    parse.parse_json(file_name, output_folder + '/full.json', True, 0, 40000)
+    parse.parse_json(file_name, output_folder + '/small.json', True)
 
+<<<<<<< HEAD
+    graph = LoadGraphFast().load_anime_graph_multiprocess(output_folder + '/small.json')
+    graph.serialize(output_folder + '/small_graph.json')
+
+    graph = LoadGraphFast().load_anime_graph_multiprocess(output_folder + '/full.json')
+    graph.serialize(output_folder + '/full_graph.json')
+=======
     graph = LoadGraphFast().load_anime_graph_multiprocess(output_folder + "/small.json")
     graph.serialize(output_folder + "/small_graph.json")
     print("Finish writing to small_graph")
@@ -33,10 +40,11 @@ def generate_dataset(file_name: str, output_folder: str) -> None:
     graph = LoadGraphFast().load_anime_graph_multiprocess(output_folder + "/full.json")
     graph.serialize(output_folder + "/full_graph.json")
     print("Finish writing to full_graph")
+>>>>>>> 1ea7d227ed8609ffd93a9d0488a38a977c8fb711
 
     elapsed_time = time.process_time() - t
-    print(f"Dataset generation finished within {elapsed_time} sec")
+    print(f'Dataset generation finished within {elapsed_time}s')
 
 
-if __name__ == "__main__":
-    generate_dataset("data/original.json", "data")
+if __name__ == '__main__':
+    generate_dataset('data/original.json', 'data')
