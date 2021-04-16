@@ -6,7 +6,7 @@ For more information on copyright for CSC111 materials, please consult the Cours
 Copyright (c) 2021 by Ching Chang, Letian Cheng, Arkaprava Choudhury, Hanrui Fan
 """
 
-from typing import Union, Optional, Any
+from typing import Union
 import json
 import multiprocessing
 import time
@@ -18,10 +18,11 @@ import parse
 
 class Graph:
     """A graph of anime to represent the popularity and similarity network
+
+    Private Instance Attributes:
+        - _anime: A collection of the anime contained in this graph
+        - _feedback: A list of tuples containing users' feedback
     """
-    # Private Instance Attributes:
-    #   - _anime: A collection of the anime contained in this graph
-    #   - _feedback: A list of tuples containing users' feedback
     _anime: dict[str, Anime]
     _feedback: list[tuple[Anime, Anime, str]]
 
@@ -48,7 +49,7 @@ class Graph:
         Preconditions:
             - anime_title in self._anime
         """
-        self._anime[anime_title].neighbours.append(neighbour_title)
+        self._anime[anime_title].neighbours.append(self._anime[neighbour_title])
 
     def get_all_anime(self) -> list[str]:
         """Return a list of all the anime in this graph
@@ -183,9 +184,9 @@ class Graph:
         if anime_title in self._anime:
             anime = self._anime[anime_title]
             if len(anime.neighbours) > limit:
-                return [self._anime[anime.neighbours[i]] for i in range(limit)]
+                return [self._anime[anime.neighbours[i].title] for i in range(limit)]
             else:
-                return [self._anime[neighbour] for neighbour in anime.neighbours]
+                return [self._anime[neighbour.title] for neighbour in anime.neighbours]
         else:
             raise ValueError
 
@@ -359,6 +360,7 @@ class Graph:
         # need to recompute neighbours and edges
         self._anime = LoadGraphFast().calc_graph(self._anime)
 
+
 def load_anime_graph(file_name: str) -> Graph:
     """Return the anime graph corresponding to the given dataset
     WARNING: this function will roughly take one hour to run on the full dataset.
@@ -466,6 +468,6 @@ if __name__ == "__main__":
     import python_ta
     python_ta.check_all(config={
         'max-line-length': 100,
-        'disable': ['E9999', 'E9998'],
+        'disable': ['E9999', 'E9998', 'E1136'],
         'max-nested-blocks': 4
     })
