@@ -2,17 +2,17 @@
 This file is provided for whichever TA is grading and giving us 100.
 Forms of distribution of this code are allowed.
 For more information on copyright for CSC111 materials, please consult the Course Syllabus.
+
 Copyright (c) 2021 by Ching Chang, Letian Cheng, Arkaprava Choudhury, Hanrui Fan
-TODO: modify StrictGraph
-TODO: DiGraph for Simple and Graph for Strict???
 """
 
-from anime import Anime, NEIGHBOUR_LIMIT
-import plotly
-from typing import Union
-import networkx as nx
+from typing import Union, Optional, Any
 import json
 import multiprocessing
+import time
+import plotly
+import networkx as nx
+from anime import Anime, NEIGHBOUR_LIMIT
 import parse
 
 
@@ -34,6 +34,21 @@ class Graph:
         """
         if title not in self._anime:
             self._anime[title] = Anime(data)
+
+    def add_neighbour(self, anime_title: str, neighbour_title: str) -> None:
+        """Append the given neighbour in the given anime's list of neighbours
+
+        Unlike adding an edge in a typical graph, we only add the given neighbour in the list of
+        the given anime's neighbours, without adding the given anime in the list of the given
+        neighbour's neighbours. This is because neighbours are sorted by the similarity.
+
+        Add neighbour_title even if neighbour_title is not in self._anime, because we assume that
+        neighbour_title will eventually be added to the graph, based on our data structure.
+
+        Preconditions:
+            - anime_title in self._anime
+        """
+        self._anime[anime_title].neighbours.append(neighbour_title)
 
     def get_all_anime(self) -> list[str]:
         """Return a list of all the anime in this graph
@@ -57,7 +72,8 @@ class Graph:
             raise ValueError
 
     def _insert_neighbour(self, anime1: Anime, anime2: Anime) -> None:
-        """Insert anime2 into anime1.neighbours based on the similarity of anime2 with anime1"""
+        """Insert anime2 into anime1.neighbours based on the similarity of anime2 with anime1
+        """
         anime1.insert_neighbour(anime2)
 
     def _adjust_positive_feedback(self, anime1: Anime, anime2: Anime) -> None:
@@ -84,9 +100,9 @@ class Graph:
             - anime in self._anime
         """
         if reaction == 'upvote':
-            anime.set_tag_weighting(tag, anime.get_tags()[tag] * 1.1)
+            anime.set_tag_weighting(tag, anime.get_tag_weight(tag) * 1.1)
         else:
-            anime.set_tag_weighting(tag, anime.get_tags()[tag] * 0.9)
+            anime.set_tag_weighting(tag, anime.get_tag_weight(tag) * 0.9)
 
     def adjust_weighting(self, anime1: Anime, anime2: Anime, reaction: str = 'upvote') -> None:
         """
@@ -125,7 +141,8 @@ class Graph:
                 'url': self._anime[anime_name].url,
                 'thumbnail': self._anime[anime_name].thumbnail,
                 'detail': self._anime[anime_name].detail,
-                'tags': self._anime[anime_name].get_tags()
+                'tags': {tag: self._anime[anime_name].get_tag_weight(tag) for tag in
+                         self._anime[anime_name].get_all_tags()}
             }
             for neighbour in self._anime[anime_name].neighbours:
                 neighbours[anime_name]['neighbours'].append(neighbour.title)
@@ -150,10 +167,10 @@ class Graph:
     def _get_prediction_weights(self, curr_anime: Anime, past_choices: list[tuple[Anime, Anime]]) \
             -> dict[str, float]:
         """Get the weightings required to make the predictions"""
-        prediction_weights = {tag: 1 for tag in curr_anime.get_tags()}
+        prediction_weights = {tag: 1 for tag in curr_anime.get_all_tags()}
         for pair in past_choices:
-            for tag in curr_anime.get_tags():
-                if tag in pair[0].get_tags() and tag in pair[1].get_tags():
+            for tag in curr_anime.get_all_tags():
+                if tag in pair[0].get_all_tags() and tag in pair[1].get_all_tags():
                     prediction_weights[tag] += 1
         return prediction_weights
 
@@ -166,14 +183,15 @@ class Graph:
         if anime_title in self._anime:
             anime = self._anime[anime_title]
             if len(anime.neighbours) > limit:
-                return anime.neighbours[:limit]
+                return [self._anime[anime.neighbours[i]] for i in range(limit)]
             else:
-                return anime.neighbours
+                return [self._anime[neighbour] for neighbour in anime.neighbours]
         else:
             raise ValueError
 
     def add_connection(self, graph: nx.Graph(), cur_anime_title: str, det_anime_title: str) -> None:
         """Add one edge to a given graph
+
         Preconditions:
             - cur_anime_tile in self._anime
             - det_anime_tile not in self._anime
@@ -205,8 +223,7 @@ class Graph:
             edge_sim = self._anime[edge[0]].calculate_similarity(self._anime[edge[1]])
 
             edge_similarity.extend(
-                ["Similarity score: " + str(edge_sim) + " Between " + edge[0] + " and " + edge[1],
-                 None])
+                [f'Similarity score: {edge_sim} Between {edge[0]} and {edge[1]}', None])
             # TODO Need to be checked, this is real time calculation and needs to consider load
             #  static similarity data
 
@@ -342,7 +359,6 @@ class Graph:
         # need to recompute neighbours and edges
         self._anime = LoadGraphFast().calc_graph(self._anime)
 
-
 def load_anime_graph(file_name: str) -> Graph:
     """Return the anime graph corresponding to the given dataset
     WARNING: this function will roughly take one hour to run on the full dataset.
@@ -368,23 +384,19 @@ def load_anime_graph(file_name: str) -> Graph:
 
 def load_from_serialized_data(file_name: str) -> Graph:
     """Return the anime graph corresponding to the given serialized dataset
+
     Preconditions:
         - file_name is the path to a json file corresponding to the anime data format described in
-          the project report
+      the project report
     """
     anime_graph = Graph()
 
-    # count = 0
     with open(file_name) as json_file:
         data = json.load(json_file)
         for title in data:
             anime_graph.add_anime(title, data[title])
-
-        for title in data:
-            anime_graph._anime[title].neighbours = [anime_graph._anime[i] for i in
-                                                    data[title]["neighbours"]]
-            # count += 1
-            # print(f"done {count}")
+            for neighbour in data[title]['neighbours']:
+                anime_graph.add_neighbour(title, neighbour)
 
     return anime_graph
 
@@ -427,6 +439,7 @@ class LoadGraphFast:
 
         WRNING: This may absolutely wreck your device. For context, on the full dataset, it takes
         about 17s using 3900x.
+
         Preconditions:
             - file_name is the path to a json file corresponding to the anime data
             format described in the project report
@@ -453,8 +466,6 @@ if __name__ == "__main__":
     import python_ta
     python_ta.check_all(config={
         'max-line-length': 100,
-        'disable': ['E9999'],
-        # 'extra-imports': ['csv', 'networkx'],
-        # 'allowed-io': ['load_review_graph'],
+        'disable': ['E9999', 'E9998'],
         'max-nested-blocks': 4
     })

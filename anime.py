@@ -30,6 +30,9 @@ class Anime:
         - thumbnail: The url to the thumbnail of the anime
         - detail: ...
         - neighbours: A list of anime that are similar to this anime
+
+    Private Instance Attributes:
+        - _tags: A dictionary mapping each tag of the anime to a weighting from 0 to 1 (inclusive)
     """
 
     title: str  # name of anime
@@ -37,18 +40,14 @@ class Anime:
     thumbnail: str  # thumbnail
     detail: str  # introduction to the anime
     neighbours: list[Anime]
-
-    # Private Instance Attributes:
-    #   - _tags: A dictionary mapping each tag of the anime to a weighting from 0 to 1 (inclusive)
     _tags: dict[str, float]  # tag: weighting(0-1)
 
-    def __init__(self, data: dict[str, Union[str, list[str]]]):
+    def __init__(self, data: dict[str, Union[str, list[str]]]) -> None:
         self.title = data['title']
         self.url = data['url']
         self.thumbnail = data['thumbnail']
         self.detail = data['detail']
         self._tags = _initialize_tags(data['tags'])
-
         self.neighbours = []
 
     def calculate_similarity(self, anime: Anime) -> float:
@@ -72,12 +71,6 @@ class Anime:
         Return the set of every tag associated with this anime
         """
         return set(self._tags)
-
-    def get_tags(self) -> dict[str, float]:
-        """
-        Return the tags and their weights attached to this anime.
-        """
-        return self._tags
 
     def get_tag_weight(self, tag: str) -> float:
         """
@@ -147,7 +140,7 @@ class Anime:
         is hence not normalized.
         """
         sum_so_far = 0
-        for tag in self.get_tags():
+        for tag in self.get_all_tags():
             if tag in prediction_weights:
                 sum_so_far += prediction_weights[tag]
         return sum_so_far
@@ -184,14 +177,13 @@ def _initialize_tags(tags: list[str]) -> dict[str, float]:
     return anime_tags
 
 
-# if __name__ == "__main__":
-#     import python_ta
-#     python_ta.check_all(config={
-#         'max-line-length': 100,
-#         'disable': ['E1136'],
-#         'extra-imports': ['a1_linked_list'],
-#         'max-nested-blocks': 4
-#     })
+if __name__ == "__main__":
+    import python_ta
+    python_ta.check_all(config={
+        'max-line-length': 100,
+        'disable': ['E1136', 'E9999'],
+        'max-nested-blocks': 4
+    })
 #
 #     import python_ta.contracts
 #     python_ta.contracts.check_all_contracts()
