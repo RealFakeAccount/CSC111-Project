@@ -36,7 +36,7 @@ class Graph:
         if title not in self._anime:
             self._anime[title] = Anime(data)
 
-    def add_neighbour(self, anime_title: str, neighbour: Anime) -> None:
+    def add_neighbour(self, anime_title: str, neighbour: str) -> None:
         """Append the given neighbour in the given anime's list of neighbours
         Unlike adding an edge in a typical graph, we only add the given neighbour in the list of
         the given anime's neighbours, without adding the given anime in the list of the given
@@ -46,7 +46,7 @@ class Graph:
         Preconditions:
             - anime_title in self._anime
         """
-        self._anime[anime_title].neighbours.append(neighbour)
+        self._anime[anime_title].neighbours.append(self._anime[neighbour])
 
     def get_all_anime(self) -> list[str]:
         """Return a list of all the anime in this graph
@@ -261,6 +261,7 @@ class Graph:
         Preconditions,:
             - depth <= 5 # This will be handled by the slider on the website
         """
+        visited = set(anime_title)
         graph = nx.Graph()
         shell = [[anime_title], []]  # [[center of graph], [other nodes]]
         queue = [(anime_title, 0)]  # title, depth
@@ -271,6 +272,8 @@ class Graph:
             print(cur[0])
 
             for i in self.get_related_anime(cur[0], limit):
+                if i.title in visited: continue
+                visited.add(i.title)
                 self.add_connection(graph, cur[0], i.title)
                 if cur[1] < depth:
                     queue.append((i.title, cur[1] + 1))
@@ -418,6 +421,8 @@ def load_from_serialized_data(file_name: str) -> Graph:
         data = json.load(json_file)
         for title in data:
             anime_graph.add_anime(title, data[title])
+
+        for title in data:
             for neighbour in data[title]['neighbours']:
                 anime_graph.add_neighbour(title, neighbour)
 
