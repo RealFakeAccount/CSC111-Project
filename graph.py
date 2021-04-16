@@ -278,7 +278,7 @@ class Graph:
             cur = queue[0]
             queue.pop(0)
 
-            for i in self.get_related_anime(cur[0], limit= limit, visited=visited):
+            for i in self.get_related_anime(cur[0], limit=limit, visited=visited):
                 if i.title in visited: continue
                 visited.add(i.title)
 

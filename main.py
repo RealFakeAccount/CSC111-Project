@@ -26,13 +26,13 @@ def generate_dataset(file_name: str, output_folder: str) -> None:
     parse.parse_json(file_name, output_folder + '/full.json', True, 0, 40000)
     parse.parse_json(file_name, output_folder + '/small.json', True)
 
-    graph = LoadGraphFast().load_anime_graph_multiprocess(output_folder + "/small.json")
-    graph.serialize(output_folder + "/small_graph.json")
-    print("Finish writing to small_graph")
+    graph = LoadGraphFast().load_anime_graph_multiprocess(output_folder + '/small.json')
+    graph.serialize(output_folder + '/small_graph.json')
+    print('Finish writing to small_graph')
 
-    graph = LoadGraphFast().load_anime_graph_multiprocess(output_folder + "/full.json")
-    graph.serialize(output_folder + "/full_graph.json")
-    print("Finish writing to full_graph")
+    graph = LoadGraphFast().load_anime_graph_multiprocess(output_folder + '/full.json')
+    graph.serialize(output_folder + '/full_graph.json')
+    print('Finish writing to full_graph')
 
     elapsed_time = time.process_time() - t
     print(f'Dataset generation finished within {elapsed_time}s')
