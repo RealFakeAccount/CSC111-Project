@@ -6,22 +6,22 @@ For more information on copyright for CSC111 materials,
 please do not consult the Course Syllabus.
 """
 import json
-import requests
-from bs4 import BeautifulSoup
+from graph import LoadGraphFast
+import time
 
 
 def parse_json(file_name: str, output_file: str, verbose: bool = True, start: int = 12500,
                end: int = 13500) -> None:
     """Parse the anime dataset from file_name and write the output to output_file"""
     new_data = {}
-    cnt_skip = 0
+    skipped = 0
     with open(file_name) as original_file:
         data = json.load(original_file)
         for i in range(start, min(end, len(data['data']))):
             anime = data['data'][i]
-            if len(anime['tags']) == 0: 
-                cnt_skip += 1
-                continue # remove the anime with 0 tags
+            if len(anime['tags']) == 0:
+                skipped += 1
+                continue  # remove the anime with 0 tags
             description = ''  # get_anime_description(anime['sources'][0])
 
             new_data[anime['title']] = {
@@ -36,38 +36,39 @@ def parse_json(file_name: str, output_file: str, verbose: bool = True, start: in
                 print(f'{round((i - start) / (e - start) * 100, 2)}%')
 
         with open(output_file, 'w') as new_file:
-            print(f"Writing to {output_file}.. {cnt_skip} are skipped because of 0 tag")
+            print(f'Writing to {output_file}.. {skipped} are skipped because of 0 tag')
             json.dump(new_data, new_file)
 
 
-def get_anime_description(url: str) -> str:
-    """Scrape the description/synopsis of an anime from the given url
-    """
-    page = requests.get(url, headers={
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'
-    })
-    soup = BeautifulSoup(page.content, 'html.parser')
-    if url.startswith('https://anidb.net'):
-        detail_raw = soup.find(itemprop='description')
-    elif url.startswith('https://myanimelist.net'):
-        detail_raw = soup.find(itemprop='description')
-    elif url.startswith(' https://kitsu.io'):
-        detail_raw = soup.find(id='ember66')
-    elif url.startswith('https://anime-planet.com'):
-        detail_raw = soup.find('div', class_='md-3-5').find('p')
-    else:
-        detail_raw = None
+def generate_dataset(file_name: str, output_folder: str) -> None:
+    """ The datasets are already provided in data.zip, but run this if you want to generate
+    the dataset from scratch.
 
-    if detail_raw is not None:
-        return detail_raw.text
-    else:
-        print(f'Failed: {url}')
-        return 'No details found for this anime'
+    In order to run this, you should provided the path to the original Manami dataset.
+    We have downloaded for you at ./data/original.json
+
+    Running time depends on your computer. It varies from 20 second to 18 minutes.
+    """
+    t = time.process_time()
+
+    parse_json(file_name, output_folder + '/full.json', True, 0, 40000)
+    parse_json(file_name, output_folder + '/small.json', True)
+
+    graph = LoadGraphFast().load_anime_graph_multiprocess(output_folder + '/small.json')
+    graph.serialize(output_folder + '/small_graph.json')
+    print('Finish writing to small_graph')
+
+    graph = LoadGraphFast().load_anime_graph_multiprocess(output_folder + '/full.json')
+    graph.serialize(output_folder + '/full_graph.json')
+    print('Finish writing to full_graph')
+
+    elapsed_time = time.process_time() - t
+    print(f'Dataset generation finished within {elapsed_time}s')
 
 
 if __name__ == '__main__':
-    parse_json('data/original.json', 'full.json', True, 0, 40000)
-    parse_json('data/original.json', 'small.json', True)
+    parse_json('./data/original.json', './data/full.json', True, 0, 40000)
+    parse_json('./data/original.json', './data/small.json', True)
 
     # import python_ta
     # python_ta.check_all(config={

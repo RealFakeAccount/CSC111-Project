@@ -5,14 +5,15 @@ For more information on copyright for CSC111 materials, please consult the Cours
 Copyright (c) 2021 by Ching Chang, Letian Cheng, Arkaprava Choudhury, Hanrui Fan
 """
 
-from typing import Union
+from typing import Union, Optional
 import json
 import multiprocessing
+import os
+import requests
+from bs4 import BeautifulSoup
 import plotly
 import networkx as nx
 from anime import Anime, NEIGHBOUR_LIMIT
-import parse
-import os
 
 MAX_HISTORY_LIMIT = 10
 
@@ -54,12 +55,32 @@ class Graph:
         """
         return list(self._anime)
 
-    def get_anime_description(self, title: str) -> str:
-        """Return the name of one anime.
-        Return an empty string if not found
+    def get_anime_description(self, anime_title: str) -> str:
+        """Get the description/synopsis of the given anime
         """
-        return parse.get_anime_description(
-            self._anime[title].url) if title in self._anime else "Anime title not found"
+        if anime_title in self._anime:
+            url = self._anime[anime_title].url
+            page = requests.get(url, headers={
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'
+            })
+            soup = BeautifulSoup(page.content, 'html.parser')
+            if url.startswith('https://anidb.net'):
+                detail_raw = soup.find(itemprop='description')
+            elif url.startswith('https://myanimelist.net'):
+                detail_raw = soup.find(itemprop='description')
+            elif url.startswith(' https://kitsu.io'):
+                detail_raw = soup.find(id='ember66')
+            elif url.startswith('https://anime-planet.com'):
+                detail_raw = soup.find('div', class_='md-3-5').find('p')
+            else:
+                detail_raw = None
+
+            if detail_raw is not None:
+                return detail_raw.text
+            else:
+                return 'No details found for this anime'
+        else:
+            return 'Anime title not found'
 
     def get_similarity(self, anime1: str, anime2: str) -> float:
         """Return the similarity between anime1 and anime2.
@@ -196,19 +217,23 @@ class Graph:
         Preconditions:
             - all(len(lst) == 2 for lst in past_choices)
         """
-        prediction_weights = {tag: 1 for tag in curr_anime.get_all_tags()}
+        prediction_weights = {initial_tag: 1 for initial_tag in curr_anime.get_all_tags()}
         for pair in past_choices:
             for tag in curr_anime.get_all_tags():
                 if tag in pair[0].get_all_tags() and tag in pair[1].get_all_tags():
                     prediction_weights[tag] += 1
         return prediction_weights
 
-    def get_related_anime(self, anime_title: str, limit: int = 5, visited: set = set()) -> list[Anime]:
+    def get_related_anime(self, anime_title: str, limit: int = 5,
+                          visited: Optional[set[str]] = None) -> list[Anime]:
         """Return a list of up to <limit> anime that are related to the given anime,
         ordered by their similarity in descending order.
         The similarity is explained in the project report and in the Anime.py file.
         Raise ValueError if anime_title is not in the graph.
         """
+        if visited is None:
+            visited = set()
+
         if anime_title in self._anime:
             anime = self._anime[anime_title]
 
@@ -230,7 +255,9 @@ class Graph:
             graph.add_node(det_anime_title, kind=str)
             graph.add_edge(cur_anime_title, det_anime_title)
 
-    def _get_all_edges_pos(self, graph: nx.Graph, nxg: dict):
+    def _get_all_edges_pos(self, graph: nx.Graph, nxg: dict) -> tuple[
+            list[list], list[list], tuple[list[Optional[float]], list[Optional[float]]], list[
+                Optional[str]]]:
         """Get all edges position in networkx graph and return a tuple of edges position in x-y
         dimension
         """
@@ -280,13 +307,13 @@ class Graph:
             queue.pop(0)
 
             for i in self.get_related_anime(cur[0], limit=limit, visited=visited):
-                if i.title in visited: continue
-                visited.add(i.title)
+                if i.title not in visited:
+                    visited.add(i.title)
 
-                shell[1].append(i.title)
-                self.add_connection(graph, cur[0], i.title)
-                if cur[1] < depth - 1:
-                    queue.append((i.title, cur[1] + 1))
+                    shell[1].append(i.title)
+                    self.add_connection(graph, cur[0], i.title)
+                    if cur[1] < depth - 1:
+                        queue.append((i.title, cur[1] + 1))
 
         print(shell[0], shell[1])
         print(f"total node number: {len(shell[1])}")
@@ -305,7 +332,7 @@ class Graph:
             figure = plotly.graph_objs.Figure(data=single_node, layout=graph_layout)
             return figure
 
-        print(f"key: {[key for key in graph.nodes]}")
+        print(f"key: {list(graph.nodes)}")
 
         x_node_pos = [nxg[key][0] for key in graph.nodes if key != anime_title]
         y_node_pos = [nxg[key][1] for key in graph.nodes if key != anime_title]
@@ -506,6 +533,6 @@ if __name__ == "__main__":
     import python_ta
     python_ta.check_all(config={
         'max-line-length': 100,
-        'disable': ['E9999', 'E9998'],
+        'disable': ['E9999', 'E9998', 'E1136'],
         'max-nested-blocks': 4
     })
