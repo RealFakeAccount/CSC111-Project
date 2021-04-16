@@ -2,18 +2,19 @@
 This file is provided for whichever TA is grading and giving us 100.
 Forms of distribution of this code are allowed.
 For more information on copyright for CSC111 materials, please consult the Course Syllabus.
-
 Copyright (c) 2021 by Ching Chang, Letian Cheng, Arkaprava Choudhury, Hanrui Fan
 """
 
 from typing import Union
 import json
 import multiprocessing
-import time
 import plotly
 import networkx as nx
 from anime import Anime, NEIGHBOUR_LIMIT
 import parse
+import os
+
+MAX_HISTORY_LIMIT = 10
 
 
 class Graph:
@@ -36,20 +37,21 @@ class Graph:
         if title not in self._anime:
             self._anime[title] = Anime(data)
 
-    def add_neighbour(self, anime_title: str, neighbour_title: str) -> None:
+    def add_neighbour(self, anime_title: str, neighbour: str) -> None:
         """Append the given neighbour in the given anime's list of neighbours
-
         Unlike adding an edge in a typical graph, we only add the given neighbour in the list of
         the given anime's neighbours, without adding the given anime in the list of the given
         neighbour's neighbours. This is because neighbours are sorted by the similarity.
-
         Add neighbour_title even if neighbour_title is not in self._anime, because we assume that
         neighbour_title will eventually be added to the graph, based on our data structure.
-
         Preconditions:
             - anime_title in self._anime
         """
+<<<<<<< HEAD
         self._anime[anime_title].neighbours.append(self._anime[neighbour_title])
+=======
+        self._anime[anime_title].neighbours.append(self._anime[neighbour])
+>>>>>>> 1ea7d227ed8609ffd93a9d0488a38a977c8fb711
 
     def get_all_anime(self) -> list[str]:
         """Return a list of all the anime in this graph
@@ -151,11 +153,14 @@ class Graph:
         with open(output_file, 'w') as new_file:
             json.dump(neighbours, new_file)
 
-    def prediction(self, past_choices: list[tuple[Anime, Anime]], options: list[Anime],
+    def prediction(self, past_choices: list[list[Anime]], options: list[Anime],
                    curr_anime: Anime) -> list[Anime]:
         """
         Return a prediction of which anime in options the user is likely to choose, given all
         previous choices made and the current anime.
+
+        Preconditions:
+            - all(len(lst) == 2 for lst in past_choices)
         """
         if past_choices == []:
             return options
@@ -165,9 +170,36 @@ class Graph:
                           key=lambda anime: anime.prediction_similarity(prediction_weights),
                           reverse=True)
 
-    def _get_prediction_weights(self, curr_anime: Anime, past_choices: list[tuple[Anime, Anime]]) \
+    def store_history(self, curr_anime: Anime, rec_anime: Anime, store_file: str) -> None:
+        """Store which anime the user searched for (curr_anime), and which anime they visited out
+        of the recommendations (rec_anime) in the json file store_file.
+
+        Preconditions:
+            - curr_anime in self._anime and rec_anime in self._graph
+            - store_file is a json file storing a single list argument
+        """
+        if not os.path.exists(store_file):
+            with open(store_file, 'a+') as json_file:
+                data = [curr_anime, rec_anime]
+                json.dump([data], json_file)
+        else:
+            with open(store_file, 'a+') as json_file:
+                data = json.load(json_file)
+                if len(data) == 10:
+                    data.pop(0)
+                data.append([curr_anime, rec_anime])
+                json.dump(data, json_file)
+
+    def _get_prediction_weights(self, curr_anime: Anime, past_choices: list[list[Anime]]) \
             -> dict[str, float]:
-        """Get the weightings required to make the predictions"""
+        """Get the weightings required to make the predictions
+
+        For each list lst in past_choices, lst[0] denotes an anime that the user searched for, while
+        lst[1] denotes the anime that the user clicked on next.
+
+        Preconditions:
+            - all(len(lst) == 2 for lst in past_choices)
+        """
         prediction_weights = {tag: 1 for tag in curr_anime.get_all_tags()}
         for pair in past_choices:
             for tag in curr_anime.get_all_tags():
@@ -192,7 +224,6 @@ class Graph:
 
     def add_connection(self, graph: nx.Graph(), cur_anime_title: str, det_anime_title: str) -> None:
         """Add one edge to a given graph
-
         Preconditions:
             - cur_anime_tile in self._anime
             - det_anime_tile not in self._anime
@@ -235,19 +266,19 @@ class Graph:
         Preconditions,:
             - depth <= 5 # This will be handled by the slider on the website
         """
-        # edge = dict()  # dict[Tuple[str, str], float]
-        # node = dict()
-
+        visited = set(anime_title)
         graph = nx.Graph()
         shell = [[anime_title], []]  # [[center of graph], [other nodes]]
         queue = [(anime_title, 0)]  # title, depth
         while len(queue) != 0:
             cur = queue[0]
-            shell[1].append(cur[0])
             queue.pop(0)
-            print(cur[0])
 
             for i in self.get_related_anime(cur[0], limit):
+                if i.title in visited: continue
+                visited.add(i.title)
+
+                shell[1].append(i.title)
                 self.add_connection(graph, cur[0], i.title)
                 if cur[1] < depth:
                     queue.append((i.title, cur[1] + 1))
@@ -260,6 +291,8 @@ class Graph:
         else:
             nxg = nx.drawing.layout.spring_layout(graph)
             print(nxg[anime_title])
+
+        print(f"key: {[key for key in graph.nodes]}")
 
         x_node_pos = [nxg[key][0] for key in graph.nodes if key != anime_title]
         y_node_pos = [nxg[key][1] for key in graph.nodes if key != anime_title]
@@ -344,7 +377,6 @@ class Graph:
         Mutate the anime in self._anime according to the feedback received.
         This method also mutates self._feedback so that, by the time this function has finished
         executing, self._feedback is empty.
-
         WARNING: This method also recomputes the entire graph, so it takes as long as the
         initialization of the graph with data.
         """
@@ -386,7 +418,6 @@ def load_anime_graph(file_name: str) -> Graph:
 
 def load_from_serialized_data(file_name: str) -> Graph:
     """Return the anime graph corresponding to the given serialized dataset
-
     Preconditions:
         - file_name is the path to a json file corresponding to the anime data format described in
       the project report
@@ -397,6 +428,8 @@ def load_from_serialized_data(file_name: str) -> Graph:
         data = json.load(json_file)
         for title in data:
             anime_graph.add_anime(title, data[title])
+
+        for title in data:
             for neighbour in data[title]['neighbours']:
                 anime_graph.add_neighbour(title, neighbour)
 
@@ -438,10 +471,8 @@ class LoadGraphFast:
 
     def load_anime_graph_multiprocess(self, file_name: str) -> Graph:
         """Return the anime graph corresponding to the given dataset
-
         WRNING: This may absolutely wreck your device. For context, on the full dataset, it takes
         about 17s using 3900x.
-
         Preconditions:
             - file_name is the path to a json file corresponding to the anime data
             format described in the project report
@@ -460,14 +491,22 @@ class LoadGraphFast:
 if __name__ == "__main__":
     # import time
     # t = time.process_time()
-    # G = load_from_serialized_data("data/graph.json")
-    # assert "Karakai Jouzou no (Moto) Takagi-san Special" in G._anime
-    # print(G._anime["Karakai Jouzou no (Moto) Takagi-san Special"].neighbours)
+    G = load_from_serialized_data("data/full_graph.json")
+    print(sum(len(i._tags) == 0 for i in G._anime.values()))
     # elapsed_time = time.process_time() - t
     # print(f"process takes {elapsed_time} sec")
+<<<<<<< HEAD
     import python_ta
     python_ta.check_all(config={
         'max-line-length': 100,
         'disable': ['E9999', 'E9998', 'E1136'],
         'max-nested-blocks': 4
     })
+=======
+    # import python_ta
+    # python_ta.check_all(config={
+    #     'max-line-length': 100,
+    #     'disable': ['E9999', 'E9998'],
+    #     'max-nested-blocks': 4
+    # })
+>>>>>>> 1ea7d227ed8609ffd93a9d0488a38a977c8fb711
