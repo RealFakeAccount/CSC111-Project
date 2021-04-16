@@ -5,7 +5,7 @@ For more information on copyright for CSC111 materials, please consult the Cours
 Copyright (c) 2021 by Ching Chang, Letian Cheng, Arkaprava Choudhury, Hanrui Fan
 """
 
-from typing import Union
+from typing import Union, Optional
 import json
 import multiprocessing
 import plotly
@@ -203,12 +203,16 @@ class Graph:
                     prediction_weights[tag] += 1
         return prediction_weights
 
-    def get_related_anime(self, anime_title: str, limit: int = 5, visited: set = set()) -> list[Anime]:
+    def get_related_anime(self, anime_title: str, limit: int = 5,
+                          visited: Optional[set[str]] = None) -> list[Anime]:
         """Return a list of up to <limit> anime that are related to the given anime,
         ordered by their similarity in descending order.
         The similarity is explained in the project report and in the Anime.py file.
         Raise ValueError if anime_title is not in the graph.
         """
+        if visited is None:
+            visited = set()
+
         if anime_title in self._anime:
             anime = self._anime[anime_title]
 
@@ -279,13 +283,13 @@ class Graph:
             queue.pop(0)
 
             for i in self.get_related_anime(cur[0], limit=limit, visited=visited):
-                if i.title in visited: continue
-                visited.add(i.title)
+                if i.title not in visited:
+                    visited.add(i.title)
 
-                shell[1].append(i.title)
-                self.add_connection(graph, cur[0], i.title)
-                if cur[1] < depth - 1:
-                    queue.append((i.title, cur[1] + 1))
+                    shell[1].append(i.title)
+                    self.add_connection(graph, cur[0], i.title)
+                    if cur[1] < depth - 1:
+                        queue.append((i.title, cur[1] + 1))
 
         print(shell[0], shell[1])
         print(f"total node number: {len(shell[1])}")
