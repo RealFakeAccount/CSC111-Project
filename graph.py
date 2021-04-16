@@ -2,18 +2,19 @@
 This file is provided for whichever TA is grading and giving us 100.
 Forms of distribution of this code are allowed.
 For more information on copyright for CSC111 materials, please consult the Course Syllabus.
-
 Copyright (c) 2021 by Ching Chang, Letian Cheng, Arkaprava Choudhury, Hanrui Fan
 """
 
-from typing import Union, Optional, Any
+from typing import Union
 import json
 import multiprocessing
-import time
 import plotly
 import networkx as nx
 from anime import Anime, NEIGHBOUR_LIMIT
 import parse
+import os
+
+MAX_HISTORY_LIMIT = 10
 
 
 class Graph:
@@ -35,20 +36,17 @@ class Graph:
         if title not in self._anime:
             self._anime[title] = Anime(data)
 
-    def add_neighbour(self, anime_title: str, neighbour_title: str) -> None:
+    def add_neighbour(self, anime_title: str, neighbour: Anime) -> None:
         """Append the given neighbour in the given anime's list of neighbours
-
         Unlike adding an edge in a typical graph, we only add the given neighbour in the list of
         the given anime's neighbours, without adding the given anime in the list of the given
         neighbour's neighbours. This is because neighbours are sorted by the similarity.
-
         Add neighbour_title even if neighbour_title is not in self._anime, because we assume that
         neighbour_title will eventually be added to the graph, based on our data structure.
-
         Preconditions:
             - anime_title in self._anime
         """
-        self._anime[anime_title].neighbours.append(neighbour_title)
+        self._anime[anime_title].neighbours.append(neighbour)
 
     def get_all_anime(self) -> list[str]:
         """Return a list of all the anime in this graph
@@ -150,11 +148,14 @@ class Graph:
         with open(output_file, 'w') as new_file:
             json.dump(neighbours, new_file)
 
-    def prediction(self, past_choices: list[tuple[Anime, Anime]], options: list[Anime],
+    def prediction(self, past_choices: list[list[Anime]], options: list[Anime],
                    curr_anime: Anime) -> list[Anime]:
         """
         Return a prediction of which anime in options the user is likely to choose, given all
         previous choices made and the current anime.
+
+        Preconditions:
+            - all(len(lst) == 2 for lst in past_choices)
         """
         if past_choices == []:
             return options
@@ -164,9 +165,36 @@ class Graph:
                           key=lambda anime: anime.prediction_similarity(prediction_weights),
                           reverse=True)
 
-    def _get_prediction_weights(self, curr_anime: Anime, past_choices: list[tuple[Anime, Anime]]) \
+    def store_history(self, curr_anime: Anime, rec_anime: Anime, store_file: str) -> None:
+        """Store which anime the user searched for (curr_anime), and which anime they visited out
+        of the recommendations (rec_anime) in the json file store_file.
+
+        Preconditions:
+            - curr_anime in self._anime and rec_anime in self._graph
+            - store_file is a json file storing a single list argument
+        """
+        if not os.path.exists(store_file):
+            with open(store_file, 'a+') as json_file:
+                data = [curr_anime, rec_anime]
+                json.dump([data], json_file)
+        else:
+            with open(store_file, 'a+') as json_file:
+                data = json.load(json_file)
+                if len(data) == 10:
+                    data.pop(0)
+                data.append([curr_anime, rec_anime])
+                json.dump(data, json_file)
+
+    def _get_prediction_weights(self, curr_anime: Anime, past_choices: list[list[Anime]]) \
             -> dict[str, float]:
-        """Get the weightings required to make the predictions"""
+        """Get the weightings required to make the predictions
+
+        For each list lst in past_choices, lst[0] denotes an anime that the user searched for, while
+        lst[1] denotes the anime that the user clicked on next.
+
+        Preconditions:
+            - all(len(lst) == 2 for lst in past_choices)
+        """
         prediction_weights = {tag: 1 for tag in curr_anime.get_all_tags()}
         for pair in past_choices:
             for tag in curr_anime.get_all_tags():
@@ -183,15 +211,14 @@ class Graph:
         if anime_title in self._anime:
             anime = self._anime[anime_title]
             if len(anime.neighbours) > limit:
-                return [self._anime[anime.neighbours[i]] for i in range(limit)]
+                return [self._anime[anime.neighbours[i].title] for i in range(limit)]
             else:
-                return [self._anime[neighbour] for neighbour in anime.neighbours]
+                return [self._anime[neighbour.title] for neighbour in anime.neighbours]
         else:
             raise ValueError
 
     def add_connection(self, graph: nx.Graph(), cur_anime_title: str, det_anime_title: str) -> None:
         """Add one edge to a given graph
-
         Preconditions:
             - cur_anime_tile in self._anime
             - det_anime_tile not in self._anime
@@ -234,9 +261,6 @@ class Graph:
         Preconditions,:
             - depth <= 5 # This will be handled by the slider on the website
         """
-        # edge = dict()  # dict[Tuple[str, str], float]
-        # node = dict()
-
         graph = nx.Graph()
         shell = [[anime_title], []]  # [[center of graph], [other nodes]]
         queue = [(anime_title, 0)]  # title, depth
@@ -343,7 +367,6 @@ class Graph:
         Mutate the anime in self._anime according to the feedback received.
         This method also mutates self._feedback so that, by the time this function has finished
         executing, self._feedback is empty.
-
         WARNING: This method also recomputes the entire graph, so it takes as long as the
         initialization of the graph with data.
         """
@@ -358,6 +381,7 @@ class Graph:
 
         # need to recompute neighbours and edges
         self._anime = LoadGraphFast().calc_graph(self._anime)
+
 
 def load_anime_graph(file_name: str) -> Graph:
     """Return the anime graph corresponding to the given dataset
@@ -384,7 +408,6 @@ def load_anime_graph(file_name: str) -> Graph:
 
 def load_from_serialized_data(file_name: str) -> Graph:
     """Return the anime graph corresponding to the given serialized dataset
-
     Preconditions:
         - file_name is the path to a json file corresponding to the anime data format described in
       the project report
@@ -436,10 +459,8 @@ class LoadGraphFast:
 
     def load_anime_graph_multiprocess(self, file_name: str) -> Graph:
         """Return the anime graph corresponding to the given dataset
-
         WRNING: This may absolutely wreck your device. For context, on the full dataset, it takes
         about 17s using 3900x.
-
         Preconditions:
             - file_name is the path to a json file corresponding to the anime data
             format described in the project report
