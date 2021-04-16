@@ -28,19 +28,19 @@ class Anime:
         - title: The title of the anime
         - url: The url to the home page of the anime on http://myanimelist.net
         - thumbnail: The url to the thumbnail of the anime
-        - detail: ...
+        - detail: The synopsis of the anime
         - neighbours: A list of anime that are similar to this anime
 
     Private Instance Attributes:
         - _tags: A dictionary mapping each tag of the anime to a weighting from 0 to 1 (inclusive)
     """
 
-    title: str  # name of anime
-    url: str  # url of anime on MAL
-    thumbnail: str  # thumbnail
-    detail: str  # introduction to the anime
+    title: str
+    url: str
+    thumbnail: str
+    detail: str
     neighbours: list[Anime]
-    _tags: dict[str, float]  # tag: weighting(0-1)
+    _tags: dict[str, float]
 
     def __init__(self, data: dict[str, Union[str, list[str]]]) -> None:
         self.title = data['title']
