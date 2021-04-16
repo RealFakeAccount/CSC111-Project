@@ -393,9 +393,9 @@ class Graph:
 
         return figure
 
-    def get_anime(self) -> dict[str, Anime]:
+    def get_anime(self, title: str) -> Anime:
         """Return the _anime attribute of the graph"""
-        return self._anime
+        return self._anime.get(title)
 
     def store_feedback(self, reaction: str, curr_anime: Anime, feedback_anime: Anime) -> None:
         """
@@ -406,14 +406,32 @@ class Graph:
             - reaction in {'upvote', 'downvote'}
         """
         self._feedback.append((curr_anime, feedback_anime, reaction))
+    
+    def dump_feedback_to_file(self, output_file: str) -> None:
+        """
+        save the feedback to file 
+        """
+        _feedback: list[tuple[Anime, Anime, str]]
+        feedback = {}
+
+        cnt = 0
+        for item in self._feedback:
+            feedback[cnt] = {
+                'anime1': item[0].title,
+                'anime2': item[1].title,
+                'value': item[2]
+            }
+            cnt += 1
+
+        with open(output_file, 'w') as new_file:
+            json.dump(feedback, new_file)
+
 
     def implement_feedback(self) -> None:
         """
         Mutate the anime in self._anime according to the feedback received.
         This method also mutates self._feedback so that, by the time this function has finished
         executing, self._feedback is empty.
-        WARNING: This method also recomputes the entire graph, so it takes as long as the
-        initialization of the graph with data.
         """
         if self._feedback != []:
             length = len(self._feedback)
@@ -424,8 +442,6 @@ class Graph:
 
         assert self._feedback == []
 
-        # need to recompute neighbours and edges
-        self._anime = LoadGraphFast().calc_graph(self._anime)
 
 
 def load_anime_graph(file_name: str) -> Graph:
@@ -504,7 +520,7 @@ class LoadGraphFast:
 
         return {anime_list[i].title: res[i] for i in range(0, len(anime_list))}
 
-    def load_anime_graph_multiprocess(self, file_name: str) -> Graph:
+    def load_anime_graph_multiprocess(self, file_name: str, feedback: str = "") -> Graph:
         """Return the anime graph corresponding to the given dataset
         WRNING: This may absolutely wreck your device. For context, on the full dataset, it takes
         about 17s using 3900x.
@@ -518,7 +534,18 @@ class LoadGraphFast:
             data = json.load(json_file)
             for title in data:
                 anime_graph.add_anime(title, data[title])
+        
+        if feedback != "" and os.path.exist(feedback):
+            with open(feedback) as json_file:
+                data = json.load(json_file)
+                for item in data:
+                    anime_graph.store_feedback(
+                        item['value'],
+                        anime_graph.get_anime(item['anime1']),
+                        anime_graph.get_anime(item['anime2'])
+                    )
 
+        anime_graph.implement_feedback()
         anime_graph._anime = self.calc_graph(anime_graph._anime)
         return anime_graph
 
