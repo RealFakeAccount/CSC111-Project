@@ -5,12 +5,12 @@ import dash_html_components as html
 from dash_html_components.Label import Label
 from plotly.graph_objs import Scatter, Figure
 import plotly.express as px
-import Graph
+import graph
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
-G = Graph.load_from_serialized_data("data/full_graph.json")
+G = graph.load_from_serialized_data("data/full_graph.json")
 
 ele = [
     # Title
