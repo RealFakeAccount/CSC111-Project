@@ -96,22 +96,6 @@ class Graph:
         """
         anime1.insert_neighbour(anime2)
 
-    def _adjust_positive_feedback(self, anime1: Anime, anime2: Anime) -> None:
-        """Readjust the weightings upon receiving positive feedback for the similarity of
-        anime1 with anime2.
-        Preconditions:
-            - anime1 in self._anime.values() and anime2 in self._anime.values()
-        """
-        anime1.adjust_positive_feedback(anime2)
-
-    def _adjust_negative_feedback(self, anime1: Anime, anime2: Anime) -> None:
-        """Readjust the weightings upon receiving negative feedback for the similarity of
-        anime1 with anime2.
-        Preconditions:
-            - anime1 in self._anime.values() and anime2 in self._anime.values()
-        """
-        anime1.adjust_negative_feedback(anime2)
-
     def adjust_weighting_v1(self, anime: Anime, tag: str, reaction: str = 'upvote') -> None:
         """
         Note: this is a very inefficient operation.
@@ -129,10 +113,7 @@ class Graph:
         Preconditions:
             - reaction in {'upvote', 'downvote'}
         """
-        if reaction == 'upvote':
-            self._adjust_positive_feedback(anime1, anime2)
-        else:
-            self._adjust_negative_feedback(anime1, anime2)
+        anime1.adjust_from_feedback(anime2, reaction)
 
     def calculate_neighbours(self, anime_name: str) -> None:
         """Add the neighbours for each anime.
@@ -184,7 +165,7 @@ class Graph:
         else:
             prediction_weights = self._get_prediction_weights(curr_anime, past_choices)
             return sorted(options,
-                          key=lambda anime: anime.prediction_similarity(prediction_weights),
+                          key=lambda anime: anime.predict_similarity(prediction_weights),
                           reverse=True)
 
     def store_history(self, curr_anime: Anime, rec_anime: Anime, store_file: str) -> None:
@@ -406,10 +387,9 @@ class Graph:
             - reaction in {'upvote', 'downvote'}
         """
         self._feedback.append((curr_anime, feedback_anime, reaction))
-    
+
     def dump_feedback_to_file(self, output_file: str) -> None:
-        """
-        save the feedback to file 
+        """Save the feedback to file
         """
         _feedback: list[tuple[Anime, Anime, str]]
         feedback = {}
@@ -426,7 +406,6 @@ class Graph:
         with open(output_file, 'w') as new_file:
             json.dump(feedback, new_file)
 
-
     def implement_feedback(self) -> None:
         """
         Mutate the anime in self._anime according to the feedback received.
@@ -441,7 +420,6 @@ class Graph:
                 self.adjust_weighting(anime1, anime2, response)
 
         assert self._feedback == []
-
 
 
 def load_anime_graph(file_name: str) -> Graph:
@@ -520,7 +498,7 @@ class LoadGraphFast:
 
         return {anime_list[i].title: res[i] for i in range(0, len(anime_list))}
 
-    def load_anime_graph_multiprocess(self, file_name: str, feedback: str = "") -> Graph:
+    def load_anime_graph_multiprocess(self, file_name: str, feedback: str = '') -> Graph:
         """Return the anime graph corresponding to the given dataset
         WRNING: This may absolutely wreck your device. For context, on the full dataset, it takes
         about 17s using 3900x.
@@ -534,8 +512,8 @@ class LoadGraphFast:
             data = json.load(json_file)
             for title in data:
                 anime_graph.add_anime(title, data[title])
-        
-        if feedback != "" and os.path.exist(feedback):
+
+        if feedback != '' and os.path.exists(feedback):
             with open(feedback) as json_file:
                 data = json.load(json_file)
                 for item in data:
