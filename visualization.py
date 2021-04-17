@@ -5,6 +5,7 @@ For more information on copyright for CSC111 materials, please consult the Cours
 
 Copyright (c) 2021 by Ching Chang, Letian Cheng, Arkaprava Choudhury, Hanrui Fan
 """
+from typing import Optional
 import dash
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
@@ -58,12 +59,23 @@ ele = [
             dcc.Markdown(id='button feedback', children=""),
 
             # Anime description
-            dcc.Markdown(id='description title', children="""
-            ### Anime Description:
-            """),
-            dcc.Markdown(id='description',
-                         style={'border': 'thin lightgrey solid', 'overflowX': 'scroll',
-                                'height': '500px'})
+            html.Div([
+                html.Div([
+                    dcc.Markdown(id='description title', children="""
+                    ### Anime Description:
+                    """),
+                    dcc.Markdown(id='description',
+                                 style={'border': 'thin lightgrey solid', 'overflowX': 'scroll',
+                                        'height': '500px'})
+                ], className='six columns'),
+                html.Div([
+                    # dcc.Markdown(id='description picture', children="""
+                    # ### Anime Picture:
+                    # """),
+                    html.Img(id='thumbnail')
+                ], className='six columns')
+            ])
+
         ], style={'display': 'inline-block'}, className='four columns'),
         html.Div([
             # Graph
@@ -134,28 +146,30 @@ def update_name(click_data, name) -> tuple[None, str]:
 @app.callback(
     Output('connection-graph', 'hoverData'),
     Output('description', 'children'),
+    Output('thumbnail', 'src'),
     Input('connection-graph', 'hoverData'),
     Input('description', 'children')
 )
-def update_description(hover_data, description) -> tuple[None, str]:
+def update_description(hover_data, description) -> tuple[None, str, Optional[str]]:
     """change the description based on the user hover input
     """
     global hover, core
     if hover_data is None:
-        return None, 'Wait to hover.'
+        return None, 'Wait to hover.', None
 
     if 'hovertext' not in hover_data['points'][0]:  # deal with edge
         hover = None
-        return None, description
+        return None, description, None
 
     anime_title = hover_data['points'][0]['hovertext']
     if 'Similarity Score' not in anime_title:
         description = '"' + anime_title + '" : ' + full_graph.get_anime_description(anime_title)
         hover = anime_title
-        return None, description
+        thumbnail = full_graph.get_anime_thumbnail_url(anime_title)
+        return None, description, thumbnail
     elif 'Similarity Score' in anime_title:
         hover = None
-        return None, 'The point you hovered is Similarity Score.'
+        return None, 'The point you hovered is Similarity Score.', None
 
 
 def run_test_server() -> None:
