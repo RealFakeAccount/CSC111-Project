@@ -200,10 +200,10 @@ or download from following link: https://uoftctf.org/data.zip
 After unzip this file, you should have a folder contains the following files:
 
 \begin{itemize}
-    \item full_graph.json
+    \item full\_graph.json
     \item full.json
     \item original.json
-    \item small_graph.json
+    \item small\_graph.json
     \item small.json
 \end{itemize}
 
@@ -214,6 +214,37 @@ If you want to test the parse.py and generate data from scratch, uncomment the l
 If you have made some feedback and want to regenerate graph, uncomment the line contains update\_graph
 
 Then, test server for dash app would run. It will automatically open a port. You should see a website.
+
+\includegraphics[scale=0.3]{sample}
+
+On the left side, you got:
+
+\begin{itemize}
+    \item Text input: 
+
+    you can select animes it have or type your favorite anime.
+
+    \item Slider of depth: 
+
+    you can change the depth of the graph (it's a tree actually) to get more recommendations.
+
+    \item Slider of neighbour:
+
+    you can change the number of edges for each node.
+
+    \item feedback:
+
+    after hovered into one anime, you can give feedback to the recommendation- either upvote or downvote. The feedback will update the graph later.
+
+    \item Anime description:
+
+    Hover into one anime, and the program will fetch description online. Note that the response time depends on your network connection.
+\end{itemize}
+
+On the right side, you got the graph. The red node is the current shell of the graph. The small black nodes store the similarity value of edge. The blue nodes are the recommendations.
+
+You can click blue nodes to update the shell of graph.
+
 \end{text}
 
 \newpage
