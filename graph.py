@@ -125,23 +125,6 @@ class Graph:
         else:
             raise ValueError
 
-    def calculate_neighbours(self, anime_name: str) -> None:
-        """Calculate the similarity between each anime pair and add the neighbours for each anime
-        in descending order.
-
-        Warning: this method uses heavy computation and initializes the edges between anime.
-        It is not meant to be accessible when the user's session is ongoing, and should only be
-        used when the user quits their session.
-        Preconditions:
-            - anime in self._anime
-        """
-        anime_list = list(self._anime.values())
-        anime = self._anime[anime_name]
-
-        anime_list.sort(key=anime.calculate_similarity, reverse=True)
-        anime.neighbours = anime_list[:NEIGHBOUR_LIMIT]
-        self._anime[anime_name] = anime
-
     def sort_neighbours_multiprocess(self) -> None:
         """Calculate the similarity between each anime pair and add the neighbours for each anime
         in descending order.
