@@ -79,7 +79,7 @@ app.layout = html.Div(children=ele)
     Input('upvote', 'n_clicks'),
     Input('downvote', 'n_clicks'),
 )
-def upvode_downvote(upvote_times: int, downvote_times: int):
+def upvote_downvote(upvote_times: int, downvote_times: int):
     """ this function give feedback to graph object
     """
     global hover, core
