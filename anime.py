@@ -171,9 +171,9 @@ if __name__ == "__main__":
         'disable': ['E1136', 'E9999'],
         'max-nested-blocks': 4
     })
-#
-#     import python_ta.contracts
-#     python_ta.contracts.check_all_contracts()
-#
-#     import doctest
-#     doctest.testmod()
+
+    import python_ta.contracts
+    python_ta.contracts.check_all_contracts()
+
+    # import doctest
+    # doctest.testmod()
