@@ -58,12 +58,23 @@ ele = [
             dcc.Markdown(id='button feedback', children=""),
 
             # Anime description
-            dcc.Markdown(id='description title', children="""
-            ### Anime Description:
-            """),
-            dcc.Markdown(id='description',
-                         style={'border': 'thin lightgrey solid', 'overflowX': 'scroll',
-                                'height': '500px'})
+            html.Div([
+                html.Div([
+                    dcc.Markdown(id='description title', children="""
+                    ### Anime Description:
+                    """),
+                    dcc.Markdown(id='description',
+                                 style={'border': 'thin lightgrey solid', 'overflowX': 'scroll',
+                                        'height': '500px'})
+                ], className='six columns'),
+                html.Div([
+                    dcc.Markdown(id='description picture', children="""
+                    ### Anime Picture:
+                    """),
+                    html.Img(id='thumbnail')
+                ], className='six columns')
+            ])
+
         ], style={'display': 'inline-block'}, className='four columns'),
         html.Div([
             # Graph
@@ -79,7 +90,7 @@ app.layout = html.Div(children=ele)
     Input('upvote', 'n_clicks'),
     Input('downvote', 'n_clicks'),
 )
-def upvode_downvote(upvote_times: int, downvote_times: int):
+def upvote_downvote(upvote_times: int, downvote_times: int):
     """ this function give feedback to graph object
     """
     global hover, core
@@ -94,7 +105,6 @@ def upvode_downvote(upvote_times: int, downvote_times: int):
 
         G.store_feedback(action, G.get_anime(core), G.get_anime(hover))
         G.dump_feedback_to_file('data/feedback.json')
-
 
         return f'{action} to {hover}'
 
@@ -134,6 +144,7 @@ def update_name(clickData, name):
 @app.callback(
     Output('connection-graph', 'hoverData'),
     Output('description', 'children'),
+    Output('thumbnail', 'src'),
     Input('connection-graph', 'hoverData'),
     Input('description', 'children')
 )
@@ -142,20 +153,21 @@ def update_description(hoverData, description):
     """
     global hover, core
     if hoverData is None:
-        return None, 'Wait to hover.'
+        return None, 'Wait to hover.', None
 
     if 'hovertext' not in hoverData['points'][0]:  # deal with edge
         hover = None
-        return None, description
+        return None, description, None
 
     anime_title = hoverData['points'][0]['hovertext']
     if 'Similarity Score' not in anime_title:
         description = '"' + anime_title + '" : ' + G.get_anime_description(anime_title)
         hover = anime_title
-        return None, description
+        thumbnail = G.get_anime_thumbnail_url(anime_title)
+        return None, description, thumbnail
     elif 'Similarity Score' in anime_title:
         hover = None
-        return None, 'The point you hovered is Similarity Score.'
+        return None, 'The point you hovered is Similarity Score.', None
 
 
 def run_test_server() -> None:
