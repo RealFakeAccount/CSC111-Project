@@ -116,14 +116,11 @@ def upvote_downvote(upvote_times: int, downvote_times: int) -> str:
     Input('depth', 'value'),
     Input('neighbour', 'value')
 )
-def update_graph(name: Optional[str], depth: int, neighbour: int) -> tuple[Anime, str]:
+def update_graph(name: str, depth: int, neighbour: int) -> tuple[Anime, str]:
     """Update the user's input to be the centre of the graph whenever we receive a user input
     """
     global full_graph
-    if name is not None:
-        return full_graph.draw_graph(name, depth, neighbour)
-    else:
-        return full_graph.draw_graph('40meterP: Color of Drops', depth, neighbour)
+    return full_graph.draw_graph(name, depth, neighbour)
 
 
 @app.callback(
