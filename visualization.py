@@ -5,6 +5,7 @@ For more information on copyright for CSC111 materials, please consult the Cours
 
 Copyright (c) 2021 by Ching Chang, Letian Cheng, Arkaprava Choudhury, Hanrui Fan
 """
+from typing import Optional, Any
 import dash
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
@@ -18,9 +19,9 @@ app.title = 'Animmend'
 feedback = {}  # {('anime1', 'anime2'): (upvote, downvote)}
 core, hover = '40meterP: Color of Drops', None  # the current graph shell and current hover anime
 
-G = graph.load_from_serialized_data('data/full_graph.json')
+full_graph = graph.load_from_serialized_data('data/full_graph.json')
 
-upvote_button_style = {'background-color': 'blue', 'color': 'white', 'width': '47.5%'}
+upvote_button_style = {'background-color': 'white', 'color': 'black', 'width': '47.5%'}
 
 downvote_button_style = {'background-color': 'while', 'color': 'black', 'width': '47.5%'}
 
@@ -31,28 +32,29 @@ ele = [
     html.Div([
         html.Div([
             # Text Input
-            html.H5('Text Input'),
+            html.H5('Search Anime'),
             dcc.Dropdown(
                 id='name',
-                options=[{'label': i, 'value': i} for i in G.get_all_anime()],
+                options=[{'label': i, 'value': i} for i in full_graph.get_all_anime()],
                 value='40meterP: Color of Drops',
                 placeholder='40meterP: Color of Drops',
+                clearable=False
             ),
 
             # slider
-            html.H5(children='Slider of Depth'),
+            html.H5(children='Depth'),
             dcc.Slider(id='depth', value=2, min=1, max=5, step=1,
                        marks={i: str(i) for i in range(1, 6)}),
 
             # slider
-            html.H5(children='Slider of Neighbour'),
+            html.H5(children='Number of Neighbours'),
             dcc.Slider(id='neighbour', value=3, min=1, max=20, step=1,
                        marks={i: str(i) for i in range(1, 21)}),
 
             # Button
-            html.H5('Related Button'),
-            html.Button('upvote', id='upvote', n_clicks=0, style=upvote_button_style),
-            html.Button('downvote', id='downvote', n_clicks=0, style=downvote_button_style),
+            html.H5('Rate this recommendation (not the anime)'),
+            html.Button('good', id='upvote', n_clicks=0, style=upvote_button_style),
+            html.Button('bad', id='downvote', n_clicks=0, style=downvote_button_style),
 
             # Button text
             dcc.Markdown(id='button feedback', children=""),
@@ -74,7 +76,8 @@ ele = [
         ], style={'display': 'inline-block'}, className='four columns'),
         html.Div([
             # Graph
-            dcc.Graph(id='connection-graph', figure=G.draw_graph('40meterP: Color of Drops', 1, 1))
+            dcc.Graph(id='connection-graph',
+                      figure=full_graph.draw_graph('40meterP: Color of Drops', 1, 1))
         ], style={'display': 'inline-block'}, className='eight columns')
     ])
 ]
@@ -86,23 +89,25 @@ app.layout = html.Div(children=ele)
     Input('upvote', 'n_clicks'),
     Input('downvote', 'n_clicks'),
 )
-def upvote_downvote(upvote_times: int, downvote_times: int):
-    """ this function give feedback to graph object
+def upvote_downvote(upvote_times: int, downvote_times: int) -> str:
+    """Send the feedback to graph object whenever we receive one
     """
     global hover, core
     if hover is not None:
         edge = (hover, core) if hover < core else (core, hover)
         prev = feedback.get(edge, (0, 0))
         if abs(upvote_times - prev[0]) + abs(downvote_times - prev[1]) == 0:
-            return ""
+            return ''
 
         action = 'upvote' if abs(upvote_times - prev[0]) != 0 else 'downvote'
         feedback[edge] = (prev[0] + 1, prev[1]) if action == 'upvote' else (prev[0], prev[1] + 1)
 
-        G.store_feedback(action, G.get_anime(core), G.get_anime(hover))
-        G.dump_feedback_to_file('data/feedback.json')
+        full_graph.store_feedback(action, core, hover)
+        full_graph.dump_feedback_to_file('data/feedback.json')
 
         return f'{action} to {hover}'
+    else:
+        return ''
 
 
 @app.callback(
@@ -111,11 +116,11 @@ def upvote_downvote(upvote_times: int, downvote_times: int):
     Input('depth', 'value'),
     Input('neighbour', 'value')
 )
-def update_graph(name, depth, neighbour) -> tuple[Anime, str]:
-    """change the graph and whatever based on the user input
+def update_graph(name: str, depth: int, neighbour: int) -> tuple[Anime, str]:
+    """Update the user's input to be the centre of the graph whenever we receive a user input
     """
-    global G
-    return G.draw_graph(name, depth, neighbour)
+    global full_graph
+    return full_graph.draw_graph(name, depth, neighbour)
 
 
 @app.callback(
@@ -124,15 +129,15 @@ def update_graph(name, depth, neighbour) -> tuple[Anime, str]:
     Input('connection-graph', 'clickData'),
     Input('name', 'value')
 )
-def update_name(clickData, name):
+def update_name(click_data: dict[str, Any], name: str) -> tuple[None, str]:
     """change the graph based on the user click input
     """
     global hover, core
-    if clickData is not None and 'hovertext' not in clickData['points'][0]:  # deal with edge
+    if click_data is not None and 'hovertext' not in click_data['points'][0]:  # deal with edge
         return None, name
-    if clickData is not None and 'Similarity Score' not in clickData['points'][0]['hovertext'] and \
-            clickData['points'][0]['hovertext'] != name:
-        name = clickData['points'][0]['hovertext']
+    if click_data is not None and 'Similarity Score' not in click_data['points'][0]['hovertext'] \
+            and click_data['points'][0]['hovertext'] != name:
+        name = click_data['points'][0]['hovertext']
     core = name
     return None, name
 
@@ -147,27 +152,30 @@ def update_name(clickData, name):
     Input('thumbnail', 'src'),
     Input('description picture', 'children')
 )
-def update_description(hoverData, description, thumbnail, pic_title):
+def update_description(hover_data: dict[str, Any], description: str, thumbnail: str,
+                       pic_title: str) -> tuple[None, str, Optional[str], str]:
     """change the description based on the user hover input
     """
     global hover, core
-    if hoverData is None:
-        return None, 'Wait to hover.', None, 'Wait to Hover...'
+    if hover_data is None:
+        return None, 'Waiting for hover...', None, 'Waiting for hover...'
 
-    if 'hovertext' not in hoverData['points'][0]:  # deal with edge
+    if 'hovertext' not in hover_data['points'][0]:  # deal with edge
         hover = None
         return None, description, thumbnail, pic_title
 
-    anime_title = hoverData['points'][0]['hovertext']
+    anime_title = hover_data['points'][0]['hovertext']
     if 'Similarity Score' not in anime_title:
-        description = G.get_anime_description(anime_title)
+        description = full_graph.get_anime_description(anime_title)
         hover = anime_title
-        thumbnail = G.get_anime_thumbnail_url(anime_title)
+        thumbnail = full_graph.get_anime_thumbnail_url(anime_title)
         pic_title = anime_title
         return None, description, thumbnail, pic_title
     elif 'Similarity Score' in anime_title:
         hover = None
         return None, 'The point you hovered is Similarity Score.', thumbnail, pic_title
+    else:
+        return None, '', None, ''
 
 
 def run_test_server() -> None:
@@ -182,6 +190,9 @@ if __name__ == '__main__':
     import python_ta
     python_ta.check_all(config={
         'max-line-length': 100,
-        'disable': ['E9999', 'E9998'],
+        'disable': ['E9999', 'E9998', 'E1136'],
         'max-nested-blocks': 4
     })
+
+    import python_ta.contracts
+    python_ta.contracts.check_all_contracts()
