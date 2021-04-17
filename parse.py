@@ -99,3 +99,6 @@ if __name__ == '__main__':
         'allowed-io': ['parse_json', 'get_anime_description'],
         'max-nested-blocks': 4
     })
+
+    import python_ta.contracts
+    python_ta.contracts.check_all_contracts()
