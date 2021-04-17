@@ -78,11 +78,11 @@ class Anime:
         else:
             raise ValueError
 
-    def set_tag_weighting(self, tag: str, new_weighting: float) -> None:
+    def adjust_tag_weighting(self, tag: str, scale: float) -> None:
         """Set the weighting of a tag in this anime
         """
         if tag in self._tags:
-            self._tags[tag] = new_weighting
+            self._tags[tag] *= scale
             self._normalize_tags()
         else:
             raise ValueError
