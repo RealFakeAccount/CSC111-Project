@@ -18,7 +18,7 @@ app.title = 'Animmend'
 feedback = {}  # {('anime1', 'anime2'): (upvote, downvote)}
 core, hover = '40meterP: Color of Drops', None  # the current graph shell and current hover anime
 
-G = graph.load_from_serialized_data('data/full_graph.json')
+full_graph = graph.load_from_serialized_data('data/full_graph.json')
 
 upvote_button_style = {'background-color': 'blue', 'color': 'white', 'width': '47.5%'}
 
@@ -34,7 +34,7 @@ ele = [
             html.H5('Text Input'),
             dcc.Dropdown(
                 id='name',
-                options=[{'label': i, 'value': i} for i in G.get_all_anime()],
+                options=[{'label': i, 'value': i} for i in full_graph.get_all_anime()],
                 value='40meterP: Color of Drops',
                 placeholder='40meterP: Color of Drops',
             ),
@@ -67,7 +67,8 @@ ele = [
         ], style={'display': 'inline-block'}, className='four columns'),
         html.Div([
             # Graph
-            dcc.Graph(id='connection-graph', figure=G.draw_graph('40meterP: Color of Drops', 1, 1))
+            dcc.Graph(id='connection-graph',
+                      figure=full_graph.draw_graph('40meterP: Color of Drops', 1, 1))
         ], style={'display': 'inline-block'}, className='eight columns')
     ])
 ]
@@ -80,7 +81,7 @@ app.layout = html.Div(children=ele)
     Input('downvote', 'n_clicks'),
 )
 def upvote_downvote(upvote_times: int, downvote_times: int):
-    """ this function give feedback to graph object
+    """Send the feedback to graph object whenever we receive one
     """
     global hover, core
     if hover is not None:
@@ -92,9 +93,8 @@ def upvote_downvote(upvote_times: int, downvote_times: int):
         action = 'upvote' if abs(upvote_times - prev[0]) != 0 else 'downvote'
         feedback[edge] = (prev[0] + 1, prev[1]) if action == 'upvote' else (prev[0], prev[1] + 1)
 
-        G.store_feedback(action, G.get_anime(core), G.get_anime(hover))
-        G.dump_feedback_to_file('data/feedback.json')
-
+        full_graph.store_feedback(action, core, hover)
+        full_graph.dump_feedback_to_file('data/feedback.json')
 
         return f'{action} to {hover}'
 
@@ -106,10 +106,10 @@ def upvote_downvote(upvote_times: int, downvote_times: int):
     Input('neighbour', 'value')
 )
 def update_graph(name, depth, neighbour) -> tuple[Anime, str]:
-    """change the graph and whatever based on the user input
+    """Update the user's input to be the centre of the graph whenever we recieve a user input
     """
-    global G
-    return G.draw_graph(name, depth, neighbour)
+    global full_graph
+    return full_graph.draw_graph(name, depth, neighbour)
 
 
 @app.callback(
@@ -118,15 +118,15 @@ def update_graph(name, depth, neighbour) -> tuple[Anime, str]:
     Input('connection-graph', 'clickData'),
     Input('name', 'value')
 )
-def update_name(clickData, name):
+def update_name(click_data, name) -> tuple[None, str]:
     """change the graph based on the user click input
     """
     global hover, core
-    if clickData is not None and 'hovertext' not in clickData['points'][0]:  # deal with edge
+    if click_data is not None and 'hovertext' not in click_data['points'][0]:  # deal with edge
         return None, name
-    if clickData is not None and 'Similarity Score' not in clickData['points'][0]['hovertext'] and \
-            clickData['points'][0]['hovertext'] != name:
-        name = clickData['points'][0]['hovertext']
+    if click_data is not None and 'Similarity Score' not in click_data['points'][0]['hovertext'] \
+            and click_data['points'][0]['hovertext'] != name:
+        name = click_data['points'][0]['hovertext']
     core = name
     return None, name
 
@@ -137,20 +137,20 @@ def update_name(clickData, name):
     Input('connection-graph', 'hoverData'),
     Input('description', 'children')
 )
-def update_description(hoverData, description):
+def update_description(hover_data, description) -> tuple[None, str]:
     """change the description based on the user hover input
     """
     global hover, core
-    if hoverData is None:
+    if hover_data is None:
         return None, 'Wait to hover.'
 
-    if 'hovertext' not in hoverData['points'][0]:  # deal with edge
+    if 'hovertext' not in hover_data['points'][0]:  # deal with edge
         hover = None
         return None, description
 
-    anime_title = hoverData['points'][0]['hovertext']
+    anime_title = hover_data['points'][0]['hovertext']
     if 'Similarity Score' not in anime_title:
-        description = '"' + anime_title + '" : ' + G.get_anime_description(anime_title)
+        description = '"' + anime_title + '" : ' + full_graph.get_anime_description(anime_title)
         hover = anime_title
         return None, description
     elif 'Similarity Score' in anime_title:
