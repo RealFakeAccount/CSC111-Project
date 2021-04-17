@@ -81,6 +81,15 @@ class Graph:
                 return 'No details found for this anime'
         else:
             return 'Anime title not found'
+    
+    def get_anime_thumbnail_url(self, anime_title: str) -> str:
+        """Get the thumbnail_url of the given anime
+        """
+        if anime_title in self._anime:
+            thumbnail_url = self._anime[anime_title].thumbnail
+            return thumbnail_url
+        else:
+            return 'Anime title not found'
 
     def get_similarity(self, anime1: str, anime2: str) -> float:
         """Return the similarity between anime1 and anime2.

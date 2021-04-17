@@ -58,12 +58,19 @@ ele = [
             dcc.Markdown(id='button feedback', children=""),
 
             # Anime description
-            dcc.Markdown(id='description title', children="""
-            ### Anime Description:
-            """),
-            dcc.Markdown(id='description',
-                         style={'border': 'thin lightgrey solid', 'overflowX': 'scroll',
-                                'height': '500px'})
+            html.Div([
+                html.Div([
+                    html.H3(id='description picture', children='40meterP: Color of Drops'),
+                    html.Img(id='thumbnail', style={'height': '100%', 'width': '100%'})
+                ], className='six columns'),
+                html.Div([
+                    html.H3(id='description title', children='Anime Description:'),
+                    dcc.Markdown(id='description',
+                                 style={'border': 'thin lightgrey solid', 'overflowX': 'scroll',
+                                        'height': '500px'})
+                ], className='six columns'),
+            ])
+
         ], style={'display': 'inline-block'}, className='four columns'),
         html.Div([
             # Graph
@@ -79,7 +86,7 @@ app.layout = html.Div(children=ele)
     Input('upvote', 'n_clicks'),
     Input('downvote', 'n_clicks'),
 )
-def upvode_downvote(upvote_times: int, downvote_times: int):
+def upvote_downvote(upvote_times: int, downvote_times: int):
     """ this function give feedback to graph object
     """
     global hover, core
@@ -94,7 +101,6 @@ def upvode_downvote(upvote_times: int, downvote_times: int):
 
         G.store_feedback(action, G.get_anime(core), G.get_anime(hover))
         G.dump_feedback_to_file('data/feedback.json')
-
 
         return f'{action} to {hover}'
 
@@ -134,28 +140,34 @@ def update_name(clickData, name):
 @app.callback(
     Output('connection-graph', 'hoverData'),
     Output('description', 'children'),
+    Output('thumbnail', 'src'),
+    Output('description picture', 'children'),
     Input('connection-graph', 'hoverData'),
-    Input('description', 'children')
+    Input('description', 'children'),
+    Input('thumbnail', 'src'),
+    Input('description picture', 'children')
 )
-def update_description(hoverData, description):
+def update_description(hoverData, description, thumbnail, pic_title):
     """change the description based on the user hover input
     """
     global hover, core
     if hoverData is None:
-        return None, 'Wait to hover.'
+        return None, 'Wait to hover.', None, 'Wait to Hover...'
 
     if 'hovertext' not in hoverData['points'][0]:  # deal with edge
         hover = None
-        return None, description
+        return None, description, thumbnail, pic_title
 
     anime_title = hoverData['points'][0]['hovertext']
     if 'Similarity Score' not in anime_title:
-        description = '"' + anime_title + '" : ' + G.get_anime_description(anime_title)
+        description = G.get_anime_description(anime_title)
         hover = anime_title
-        return None, description
+        thumbnail = G.get_anime_thumbnail_url(anime_title)
+        pic_title = anime_title
+        return None, description, thumbnail, pic_title
     elif 'Similarity Score' in anime_title:
         hover = None
-        return None, 'The point you hovered is Similarity Score.'
+        return None, 'The point you hovered is Similarity Score.', thumbnail, pic_title
 
 
 def run_test_server() -> None:
@@ -165,7 +177,7 @@ def run_test_server() -> None:
 
 
 if __name__ == '__main__':
-    # app.run_server(debug=True)
+    app.run_server(debug=True)
 
     import python_ta
     python_ta.check_all(config={
