@@ -158,7 +158,7 @@ def update_description(hover_data: dict[str, Any], description: str, thumbnail: 
     """
     global hover, core
     if hover_data is None:
-        return None, 'Wait to hover.', None, 'Wait to Hover...'
+        return None, 'Waiting for hover...', None, 'Waiting for hover...'
 
     if 'hovertext' not in hover_data['points'][0]:  # deal with edge
         hover = None
