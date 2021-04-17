@@ -116,7 +116,9 @@ class Graph:
         anime1.adjust_from_feedback(anime2, reaction)
 
     def calculate_neighbours(self, anime_name: str) -> None:
-        """Add the neighbours for each anime.
+        """Calculate the similarity between each anime pair and add the neighbours for each anime
+        in descending order.
+
         Warning: this method uses heavy computation and initializes the edges between anime.
         It is not meant to be accessible when the user's session is ongoing, and should only be
         used when the user quits their session.
@@ -129,6 +131,34 @@ class Graph:
         anime_list.sort(key=anime.calculate_similarity, reverse=True)
         anime.neighbours = anime_list[:NEIGHBOUR_LIMIT]
         self._anime[anime_name] = anime
+
+    def calculate_neighbours_multiprocess(self) -> None:
+        """Calculate the similarity between each anime pair and add the neighbours for each anime
+        in descending order.
+
+        This method is the same as self.calculate_neighbours, except that this method uses
+        multiprocessing to speed up the process.
+        """
+        anime_list = list(self._anime.values())
+        p = multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1)
+        res = p.map(self._sort_neighbours, anime_list)
+        p.close()
+        p.join()
+
+        self._anime = {anime_list[i].title: res[i] for i in range(0, len(anime_list))}
+
+    def _sort_neighbours(self, anime: Anime) -> Anime:
+        """Add the neighbours for each anime.
+        Warning: this method uses heavy computation and initializes the edges between anime.
+        It is not meant to be accessible when the user's session is ongoing, and should only be
+        used when the user quits their session.
+
+        Preconditions:
+            - anime in self._anime
+        """
+        anime.neighbours = sorted(list(self._anime.values()), key=anime.calculate_similarity,
+                                  reverse=True)[:NEIGHBOUR_LIMIT]
+        return anime
 
     def serialize(self, output_file: str) -> None:
         """Save the neighbours of each Anime in this graph into an output file
@@ -465,76 +495,44 @@ def load_from_serialized_data(file_name: str) -> Graph:
     return anime_graph
 
 
-class LoadGraphFast:
-    """A data class meant for loading the graph faster than before."""
-    _anime: list[Anime]
+def load_anime_graph_multiprocess(file_name: str, feedback: str = '') -> Graph:
+    """Return the anime graph corresponding to the given dataset
+    WARNING: This may absolutely wreck your device. For context, on the full dataset, it takes
+    about 17s using 3900x.
+    Preconditions:
+        - file_name is the path to a json file corresponding to the anime data
+        format described in the project report
+    """
+    anime_graph = Graph()
 
-    def __init__(self) -> None:
-        """Initialize ..."""
-        self._anime = list()
+    with open(file_name) as json_file:
+        data = json.load(json_file)
+        for title in data:
+            anime_graph.add_anime(title, data[title])
 
-    def _calculate_neighbours(self, anime: Anime) -> Anime:
-        """Add the neighbours for each anime.
-        Warning: this method uses heavy computation and initializes the edges between anime.
-        It is not meant to be accessible when the user's session is ongoing, and should only be
-        used when the user quits their session.
-        Preconditions:
-            - anime in self._anime
-        """
-        anime_list = self._anime.copy()
-        anime_list.sort(key=anime.calculate_similarity, reverse=True)
-        anime.neighbours = anime_list[:NEIGHBOUR_LIMIT]
-        return anime
-
-    def calc_graph(self, anime_dic: dict[str, Anime]) -> dict[str, Anime]:
-        """ input is a uncalculated anime graph
-        return a calculated anime graph
-        """
-        self._anime, anime_list = list(anime_dic.values()), list(anime_dic.values())
-        p = multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1)
-        res = p.map(self._calculate_neighbours, anime_list)
-        p.close()
-        p.join()
-
-        return {anime_list[i].title: res[i] for i in range(0, len(anime_list))}
-
-    def load_anime_graph_multiprocess(self, file_name: str, feedback: str = '') -> Graph:
-        """Return the anime graph corresponding to the given dataset
-        WRNING: This may absolutely wreck your device. For context, on the full dataset, it takes
-        about 17s using 3900x.
-        Preconditions:
-            - file_name is the path to a json file corresponding to the anime data
-            format described in the project report
-        """
-        anime_graph = Graph()
-
-        with open(file_name) as json_file:
+    if feedback != '' and os.path.exists(feedback):
+        with open(feedback) as json_file:
             data = json.load(json_file)
-            for title in data:
-                anime_graph.add_anime(title, data[title])
+            for item in data:
+                anime_graph.store_feedback(
+                    item['value'],
+                    anime_graph.get_anime(item['anime1']),
+                    anime_graph.get_anime(item['anime2'])
+                )
 
-        if feedback != '' and os.path.exists(feedback):
-            with open(feedback) as json_file:
-                data = json.load(json_file)
-                for item in data:
-                    anime_graph.store_feedback(
-                        item['value'],
-                        anime_graph.get_anime(item['anime1']),
-                        anime_graph.get_anime(item['anime2'])
-                    )
-
-        anime_graph.implement_feedback()
-        anime_graph._anime = self.calc_graph(anime_graph._anime)
-        return anime_graph
+    anime_graph.implement_feedback()
+    anime_graph.calculate_neighbours_multiprocess()
+    return anime_graph
 
 
 if __name__ == "__main__":
     # import time
     # t = time.process_time()
-    # G = load_from_serialized_data("data/full_graph.json")
-    # print(sum(len(i._tags) == 0 for i in G._anime.values()))
+    # graph = load_from_serialized_data("data/full_graph.json")
+    # print(sum(len(i._tags) == 0 for i in graph._anime.values()))
     # elapsed_time = time.process_time() - t
     # print(f"process takes {elapsed_time} sec")
+
     import python_ta
     python_ta.check_all(config={
         'max-line-length': 100,
