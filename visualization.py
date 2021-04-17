@@ -21,7 +21,7 @@ core, hover = '40meterP: Color of Drops', None  # the current graph shell and cu
 
 full_graph = graph.load_from_serialized_data('data/full_graph.json')
 
-upvote_button_style = {'background-color': 'blue', 'color': 'white', 'width': '47.5%'}
+upvote_button_style = {'background-color': 'white', 'color': 'black', 'width': '47.5%'}
 
 downvote_button_style = {'background-color': 'while', 'color': 'black', 'width': '47.5%'}
 
@@ -32,7 +32,7 @@ ele = [
     html.Div([
         html.Div([
             # Text Input
-            html.H5('Text Input'),
+            html.H5('Search Anime'),
             dcc.Dropdown(
                 id='name',
                 options=[{'label': i, 'value': i} for i in full_graph.get_all_anime()],
@@ -42,19 +42,19 @@ ele = [
             ),
 
             # slider
-            html.H5(children='Slider of Depth'),
+            html.H5(children='Depth'),
             dcc.Slider(id='depth', value=2, min=1, max=5, step=1,
                        marks={i: str(i) for i in range(1, 6)}),
 
             # slider
-            html.H5(children='Slider of Neighbour'),
+            html.H5(children='Number of Neighbours'),
             dcc.Slider(id='neighbour', value=3, min=1, max=20, step=1,
                        marks={i: str(i) for i in range(1, 21)}),
 
             # Button
-            html.H5('Related Button'),
-            html.Button('upvote', id='upvote', n_clicks=0, style=upvote_button_style),
-            html.Button('downvote', id='downvote', n_clicks=0, style=downvote_button_style),
+            html.H5('Rate this recommendation (not the anime)'),
+            html.Button('good', id='upvote', n_clicks=0, style=upvote_button_style),
+            html.Button('bad', id='downvote', n_clicks=0, style=downvote_button_style),
 
             # Button text
             dcc.Markdown(id='button feedback', children=""),

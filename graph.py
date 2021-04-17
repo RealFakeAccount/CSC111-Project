@@ -64,6 +64,9 @@ class Graph:
                 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'
             })
             soup = BeautifulSoup(page.content, 'html.parser')
+            if soup is None:
+                return 'No details found for this anime'
+
             if url.startswith('https://anidb.net'):
                 detail_raw = soup.find(itemprop='description')
             elif url.startswith('https://myanimelist.net'):
@@ -80,7 +83,7 @@ class Graph:
             else:
                 return 'No details found for this anime'
         else:
-            return 'Anime title not found'
+            raise ValueError
 
     def get_anime_thumbnail_url(self, anime_title: str) -> str:
         """Get the thumbnail_url of the given anime
