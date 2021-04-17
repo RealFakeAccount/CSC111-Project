@@ -185,7 +185,7 @@ def run_test_server() -> None:
 
 
 if __name__ == '__main__':
-    # app.run_server(debug=True)
+    app.run_server(debug=True)
 
     import python_ta
     python_ta.check_all(config={
