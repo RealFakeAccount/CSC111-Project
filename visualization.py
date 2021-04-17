@@ -38,6 +38,7 @@ ele = [
                 options=[{'label': i, 'value': i} for i in full_graph.get_all_anime()],
                 value='40meterP: Color of Drops',
                 placeholder='40meterP: Color of Drops',
+                clearable=False
             ),
 
             # slider
