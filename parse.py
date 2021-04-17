@@ -7,9 +7,8 @@ please do not consult the Course Syllabus.
 """
 import json
 
-from networkx.classes import graph
-from graph import load_anime_graph_multiprocess, load_from_serialized_data
 import time
+from graph import load_anime_graph_multiprocess
 
 
 def parse_json(file_name: str, output_file: str, verbose: bool = True, start: int = 12500,
@@ -56,12 +55,12 @@ def generate_dataset(file_name: str, output_folder: str) -> None:
     parse_json(file_name, output_folder + '/full.json', True, 0, 40000)
     parse_json(file_name, output_folder + '/small.json', True)
 
-    graph = load_anime_graph_multiprocess(output_folder + '/small.json')
-    graph.serialize(output_folder + '/small_graph.json')
+    small_graph = load_anime_graph_multiprocess(output_folder + '/small.json')
+    small_graph.serialize(output_folder + '/small_graph.json')
     print('Finish writing to small_graph')
 
-    graph = load_anime_graph_multiprocess(output_folder + '/full.json')
-    graph.serialize(output_folder + '/full_graph.json')
+    full_graph = load_anime_graph_multiprocess(output_folder + '/full.json')
+    full_graph.serialize(output_folder + '/full_graph.json')
     print('Finish writing to full_graph')
 
     elapsed_time = time.process_time() - t
@@ -89,10 +88,10 @@ if __name__ == '__main__':
     parse_json('./data/original.json', './data/full.json', True, 0, 40000)
     parse_json('./data/original.json', './data/small.json', True)
 
-    # import python_ta
-    # python_ta.check_all(config={
-    #     'max-line-length': 100,
-    #     'disable': ['E9999'],
-    #     'allowed-io': ['parse_json', 'get_anime_description'],
-    #     'max-nested-blocks': 4
-    # })
+    import python_ta
+    python_ta.check_all(config={
+        'max-line-length': 100,
+        'disable': ['E9999', 'E9998'],
+        'allowed-io': ['parse_json', 'get_anime_description'],
+        'max-nested-blocks': 4
+    })

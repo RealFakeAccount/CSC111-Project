@@ -93,6 +93,8 @@ class Graph:
 
     def _insert_neighbour(self, anime1: Anime, anime2: Anime) -> None:
         """Insert anime2 into anime1.neighbours based on the similarity of anime2 with anime1
+        TODO: This method is not called anywhere in the program
+        Consequently, Anime.insert_neighbour is never used either
         """
         anime1.insert_neighbour(anime2)
 
@@ -132,7 +134,7 @@ class Graph:
         anime.neighbours = anime_list[:NEIGHBOUR_LIMIT]
         self._anime[anime_name] = anime
 
-    def calculate_neighbours_multiprocess(self) -> None:
+    def sort_neighbours_multiprocess(self) -> None:
         """Calculate the similarity between each anime pair and add the neighbours for each anime
         in descending order.
 
@@ -521,7 +523,7 @@ def load_anime_graph_multiprocess(file_name: str, feedback: str = '') -> Graph:
                 )
 
     anime_graph.implement_feedback()
-    anime_graph.calculate_neighbours_multiprocess()
+    anime_graph.sort_neighbours_multiprocess()
     return anime_graph
 
 
