@@ -26,7 +26,7 @@ class Graph:
         - _feedback: A list of tuples containing users' feedback
     """
     _anime: dict[str, Anime]
-    _feedback: list[tuple[Anime, Anime, str]]
+    _feedback: list[tuple[str, str, str]]
 
     def __init__(self) -> None:
         self._anime = dict()
@@ -91,31 +91,39 @@ class Graph:
         else:
             raise ValueError
 
-    def _insert_neighbour(self, anime1: Anime, anime2: Anime) -> None:
+    def _insert_neighbour(self, anime1: str, anime2: str) -> None:
         """Insert anime2 into anime1.neighbours based on the similarity of anime2 with anime1
         TODO: This method is not called anywhere in the program
         Consequently, Anime.insert_neighbour is never used either
         """
-        anime1.insert_neighbour(anime2)
+        if anime1 in self._anime and anime2 in self._anime:
+            self._anime[anime1].insert_neighbour(self._anime[anime2])
+        else:
+            raise ValueError
 
-    def adjust_weighting_v1(self, anime: Anime, tag: str, reaction: str = 'upvote') -> None:
+    def adjust_weighting_v1(self, anime_title: str, tag: str, reaction: str = 'upvote') -> None:
         """
         Note: this is a very inefficient operation.
         Preconditions:
             - reaction in {'upvote', 'downvote'} # decide on the name later
             - anime in self._anime
         """
-        if reaction == 'upvote':
-            anime.set_tag_weighting(tag, anime.get_tag_weight(tag) * 1.1)
+        if anime_title in self._anime and reaction == 'upvote':
+            self._anime[anime_title].adjust_tag_weighting(tag, 1.1)
+        elif anime_title in self._anime and reaction == 'downvote':
+            self._anime[anime_title].adjust_tag_weighting(tag, 0.9)
         else:
-            anime.set_tag_weighting(tag, anime.get_tag_weight(tag) * 0.9)
+            raise ValueError
 
-    def adjust_weighting(self, anime1: Anime, anime2: Anime, reaction: str = 'upvote') -> None:
+    def adjust_weighting(self, anime1: str, anime2: str, reaction: str = 'upvote') -> None:
         """
         Preconditions:
             - reaction in {'upvote', 'downvote'}
         """
-        anime1.adjust_from_feedback(anime2, reaction)
+        if anime1 in self._anime and anime2 in self._anime:
+            self._anime[anime1].adjust_from_feedback(self._anime[anime2], reaction)
+        else:
+            raise ValueError
 
     def calculate_neighbours(self, anime_name: str) -> None:
         """Calculate the similarity between each anime pair and add the neighbours for each anime
@@ -184,7 +192,7 @@ class Graph:
             json.dump(neighbours, new_file)
 
     def prediction(self, past_choices: list[list[Anime]], options: list[Anime],
-                   curr_anime: Anime) -> list[Anime]:
+                   curr_anime: str) -> list[Anime]:
         """
         Return a prediction of which anime in options the user is likely to choose, given all
         previous choices made and the current anime.
@@ -200,7 +208,7 @@ class Graph:
                           key=lambda anime: anime.predict_similarity(prediction_weights),
                           reverse=True)
 
-    def store_history(self, curr_anime: Anime, rec_anime: Anime, store_file: str) -> None:
+    def store_history(self, curr_anime: str, rec_anime: str, store_file: str) -> None:
         """Store which anime the user searched for (curr_anime), and which anime they visited out
         of the recommendations (rec_anime) in the json file store_file.
 
@@ -208,19 +216,19 @@ class Graph:
             - curr_anime in self._anime and rec_anime in self._graph
             - store_file is a json file storing a single list argument
         """
-        if not os.path.exists(store_file):
-            with open(store_file, 'a+') as json_file:
-                data = [curr_anime, rec_anime]
-                json.dump([data], json_file)
-        else:
+        if curr_anime in self._anime and rec_anime in self._anime and os.path.exists(store_file):
             with open(store_file, 'a+') as json_file:
                 data = json.load(json_file)
                 if len(data) == 10:
                     data.pop(0)
                 data.append([curr_anime, rec_anime])
                 json.dump(data, json_file)
+        elif curr_anime in self._anime and rec_anime in self._anime:
+            with open(store_file, 'a+') as json_file:
+                data = [curr_anime, rec_anime]
+                json.dump([data], json_file)
 
-    def _get_prediction_weights(self, curr_anime: Anime, past_choices: list[list[Anime]]) \
+    def _get_prediction_weights(self, curr_anime: str, past_choices: list[list[Anime]]) \
             -> dict[str, float]:
         """Get the weightings required to make the predictions
 
@@ -230,9 +238,10 @@ class Graph:
         Preconditions:
             - all(len(lst) == 2 for lst in past_choices)
         """
-        prediction_weights = {initial_tag: 1 for initial_tag in curr_anime.get_all_tags()}
+        prediction_weights = {initial_tag: 1 for initial_tag in
+                              self._anime[curr_anime].get_all_tags()}
         for pair in past_choices:
-            for tag in curr_anime.get_all_tags():
+            for tag in self._anime[curr_anime].get_all_tags():
                 if tag in pair[0].get_all_tags() and tag in pair[1].get_all_tags():
                     prediction_weights[tag] += 1
         return prediction_weights
@@ -264,9 +273,12 @@ class Graph:
             - cur_anime_tile in self._anime
             - det_anime_tile not in self._anime
         """
-        if cur_anime_title != det_anime_title:
-            graph.add_node(det_anime_title, kind=str)
-            graph.add_edge(cur_anime_title, det_anime_title)
+        if cur_anime_title in self._anime and det_anime_title in self._anime:
+            if cur_anime_title != det_anime_title:
+                graph.add_node(det_anime_title, kind=str)
+                graph.add_edge(cur_anime_title, det_anime_title)
+        else:
+            raise ValueError
 
     def _get_all_edges_pos(self, graph: nx.Graph, nxg: dict) -> tuple[
             list[list], list[list], tuple[list[Optional[float]], list[Optional[float]]], list[
