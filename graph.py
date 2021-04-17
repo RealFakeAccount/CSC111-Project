@@ -454,29 +454,6 @@ class Graph:
         assert self._feedback == []
 
 
-def load_anime_graph(file_name: str) -> Graph:
-    """Return the anime graph corresponding to the given dataset
-    WARNING: this function will roughly take one hour to run on the full dataset.
-    Preconditions:
-        - file_name is the path to a json file corresponding to the anime data
-          format described in the project report
-    """
-    anime_graph = Graph()
-
-    with open(file_name) as json_file:
-        data = json.load(json_file)
-        for title in data:
-            anime_graph.add_anime(title, data[title])
-
-    count = 0
-    for anime_name in anime_graph.get_all_anime():
-        anime_graph.calculate_neighbours(anime_name)
-        count += 1
-        print(f"done {count}")
-
-    return anime_graph
-
-
 def load_from_serialized_data(file_name: str) -> Graph:
     """Return the anime graph corresponding to the given serialized dataset
     Preconditions:
