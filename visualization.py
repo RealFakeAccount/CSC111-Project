@@ -95,7 +95,6 @@ def upvode_downvote(upvote_times: int, downvote_times: int):
         G.store_feedback(action, G.get_anime(core), G.get_anime(hover))
         G.dump_feedback_to_file('data/feedback.json')
 
-        print(f'{action} to {hover}')
 
         return f'{action} to {hover}'
 
@@ -110,7 +109,6 @@ def update_graph(name, depth, neighbour) -> tuple[Anime, str]:
     """change the graph and whatever based on the user input
     """
     global G
-    print(f'{name}, {depth}, {neighbour}')
     return G.draw_graph(name, depth, neighbour)
 
 
@@ -124,15 +122,11 @@ def update_name(clickData, name):
     """change the graph based on the user click input
     """
     global hover, core
-    print(clickData)
     if clickData is not None and 'hovertext' not in clickData['points'][0]:  # deal with edge
         return None, name
     if clickData is not None and 'Similarity Score' not in clickData['points'][0]['hovertext'] and \
             clickData['points'][0]['hovertext'] != name:
-        print('name_update')
         name = clickData['points'][0]['hovertext']
-    else:
-        print('no change')
     core = name
     return None, name
 
@@ -147,19 +141,16 @@ def update_description(hoverData, description):
     """change the description based on the user hover input
     """
     global hover, core
-    print(hoverData)
     if hoverData is None:
         return None, 'Wait to hover.'
 
     if 'hovertext' not in hoverData['points'][0]:  # deal with edge
         hover = None
-        print('Edge End')
         return None, description
 
     anime_title = hoverData['points'][0]['hovertext']
     if 'Similarity Score' not in anime_title:
         description = '"' + anime_title + '" : ' + G.get_anime_description(anime_title)
-        print('Successful Read Description')
         hover = anime_title
         return None, description
     elif 'Similarity Score' in anime_title:

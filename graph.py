@@ -323,8 +323,6 @@ class Graph:
                     if cur[1] < depth - 1:
                         queue.append((i.title, cur[1] + 1))
 
-        print(shell[0], shell[1])
-        print(f"total node number: {len(shell[1])}")
 
         if shell[0] != shell[1]:
             nxg = nx.drawing.layout.spring_layout(graph)
@@ -340,7 +338,6 @@ class Graph:
             figure = plotly.graph_objs.Figure(data=single_node, layout=graph_layout)
             return figure
 
-        print(f"key: {list(graph.nodes)}")
 
         x_node_pos = [nxg[key][0] for key in graph.nodes if key != anime_title]
         y_node_pos = [nxg[key][1] for key in graph.nodes if key != anime_title]
@@ -397,7 +394,6 @@ class Graph:
 
         figure = plotly.graph_objs.Figure(data=all_traces, layout=graph_layout)
 
-        print("updated")
 
         return figure
 
