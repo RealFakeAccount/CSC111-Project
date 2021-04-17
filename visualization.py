@@ -5,7 +5,7 @@ For more information on copyright for CSC111 materials, please consult the Cours
 
 Copyright (c) 2021 by Ching Chang, Letian Cheng, Arkaprava Choudhury, Hanrui Fan
 """
-from typing import Optional
+from typing import Optional, Any
 import dash
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
@@ -88,7 +88,7 @@ app.layout = html.Div(children=ele)
     Input('upvote', 'n_clicks'),
     Input('downvote', 'n_clicks'),
 )
-def upvote_downvote(upvote_times: int, downvote_times: int):
+def upvote_downvote(upvote_times: int, downvote_times: int) -> str:
     """Send the feedback to graph object whenever we receive one
     """
     global hover, core
@@ -96,7 +96,7 @@ def upvote_downvote(upvote_times: int, downvote_times: int):
         edge = (hover, core) if hover < core else (core, hover)
         prev = feedback.get(edge, (0, 0))
         if abs(upvote_times - prev[0]) + abs(downvote_times - prev[1]) == 0:
-            return ""
+            return ''
 
         action = 'upvote' if abs(upvote_times - prev[0]) != 0 else 'downvote'
         feedback[edge] = (prev[0] + 1, prev[1]) if action == 'upvote' else (prev[0], prev[1] + 1)
@@ -105,6 +105,8 @@ def upvote_downvote(upvote_times: int, downvote_times: int):
         full_graph.dump_feedback_to_file('data/feedback.json')
 
         return f'{action} to {hover}'
+    else:
+        return ''
 
 
 @app.callback(
@@ -113,7 +115,7 @@ def upvote_downvote(upvote_times: int, downvote_times: int):
     Input('depth', 'value'),
     Input('neighbour', 'value')
 )
-def update_graph(name, depth, neighbour) -> tuple[Anime, str]:
+def update_graph(name: str, depth: int, neighbour: int) -> tuple[Anime, str]:
     """Update the user's input to be the centre of the graph whenever we recieve a user input
     """
     global full_graph
@@ -126,7 +128,7 @@ def update_graph(name, depth, neighbour) -> tuple[Anime, str]:
     Input('connection-graph', 'clickData'),
     Input('name', 'value')
 )
-def update_name(click_data, name) -> tuple[None, str]:
+def update_name(click_data: dict[str, Any], name: str) -> tuple[None, str]:
     """change the graph based on the user click input
     """
     global hover, core
@@ -149,7 +151,8 @@ def update_name(click_data, name) -> tuple[None, str]:
     Input('thumbnail', 'src'),
     Input('description picture', 'children')
 )
-def update_description(hover_data, description, thumbnail, pic_title) -> tuple[None, str, Optional[str]]:
+def update_description(hover_data: dict[str, Any], description: str, thumbnail: str,
+                       pic_title: str) -> tuple[None, str, Optional[str], str]:
     """change the description based on the user hover input
     """
     global hover, core
@@ -162,7 +165,7 @@ def update_description(hover_data, description, thumbnail, pic_title) -> tuple[N
 
     anime_title = hover_data['points'][0]['hovertext']
     if 'Similarity Score' not in anime_title:
-        description = '"' + anime_title + '" : ' + full_graph.get_anime_description(anime_title)
+        description = full_graph.get_anime_description(anime_title)
         hover = anime_title
         thumbnail = full_graph.get_anime_thumbnail_url(anime_title)
         pic_title = anime_title
@@ -170,6 +173,8 @@ def update_description(hover_data, description, thumbnail, pic_title) -> tuple[N
     elif 'Similarity Score' in anime_title:
         hover = None
         return None, 'The point you hovered is Similarity Score.', thumbnail, pic_title
+    else:
+        return None, '', None, ''
 
 
 def run_test_server() -> None:
@@ -184,7 +189,7 @@ if __name__ == '__main__':
     import python_ta
     python_ta.check_all(config={
         'max-line-length': 100,
-        'disable': ['E9999', 'E9998'],
+        'disable': ['E9999', 'E9998', 'E1136'],
         'max-nested-blocks': 4
     })
 
