@@ -61,19 +61,15 @@ ele = [
             # Anime description
             html.Div([
                 html.Div([
-                    dcc.Markdown(id='description title', children="""
-                    ### Anime Description:
-                    """),
+                    html.H3(id='description picture', children='40meterP: Color of Drops'),
+                    html.Img(id='thumbnail', style={'height': '100%', 'width': '100%'})
+                ], className='six columns'),
+                html.Div([
+                    html.H3(id='description title', children='Anime Description:'),
                     dcc.Markdown(id='description',
                                  style={'border': 'thin lightgrey solid', 'overflowX': 'scroll',
                                         'height': '500px'})
                 ], className='six columns'),
-                html.Div([
-                    # dcc.Markdown(id='description picture', children="""
-                    # ### Anime Picture:
-                    # """),
-                    html.Img(id='thumbnail')
-                ], className='six columns')
             ])
 
         ], style={'display': 'inline-block'}, className='four columns'),
@@ -147,29 +143,33 @@ def update_name(click_data, name) -> tuple[None, str]:
     Output('connection-graph', 'hoverData'),
     Output('description', 'children'),
     Output('thumbnail', 'src'),
+    Output('description picture', 'children'),
     Input('connection-graph', 'hoverData'),
-    Input('description', 'children')
+    Input('description', 'children'),
+    Input('thumbnail', 'src'),
+    Input('description picture', 'children')
 )
-def update_description(hover_data, description) -> tuple[None, str, Optional[str]]:
+def update_description(hover_data, description, thumbnail, pic_title) -> tuple[None, str, Optional[str]]:
     """change the description based on the user hover input
     """
     global hover, core
     if hover_data is None:
-        return None, 'Wait to hover.', None
+        return None, 'Wait to hover.', None, 'Wait to Hover...'
 
     if 'hovertext' not in hover_data['points'][0]:  # deal with edge
         hover = None
-        return None, description, None
+        return None, description, thumbnail, pic_title
 
     anime_title = hover_data['points'][0]['hovertext']
     if 'Similarity Score' not in anime_title:
         description = '"' + anime_title + '" : ' + full_graph.get_anime_description(anime_title)
         hover = anime_title
         thumbnail = full_graph.get_anime_thumbnail_url(anime_title)
-        return None, description, thumbnail
+        pic_title = anime_title
+        return None, description, thumbnail, pic_title
     elif 'Similarity Score' in anime_title:
         hover = None
-        return None, 'The point you hovered is Similarity Score.', None
+        return None, 'The point you hovered is Similarity Score.', thumbnail, pic_title
 
 
 def run_test_server() -> None:
