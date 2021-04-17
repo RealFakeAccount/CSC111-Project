@@ -42,13 +42,17 @@ def parse_json(file_name: str, output_file: str, verbose: bool = True, start: in
 
 
 def generate_dataset(file_name: str, output_folder: str) -> None:
-    """ The datasets are already provided in data.zip, but run this if you want to generate
+    """Generate the complete graph data using the complete dataset.
+
+    The datasets are already provided in data.zip. This function is for generating
     the dataset from scratch.
 
     In order to run this, you should provided the path to the original Manami dataset.
     We have downloaded for you at ./data/original.json
 
-    WARNING: Running time depends on your computer. It varies from 20 second to 18 minutes.
+    WARNING: This function is very computationally heavy. Running time can vary from 20 second to
+    18 minutes depending on your computer. For a 2015 MacBook Air, it overheated and got the fan
+    running at full speed for 8 minutes before we decided to stop the process :(
     """
     t = time.process_time()
 
@@ -67,21 +71,21 @@ def generate_dataset(file_name: str, output_folder: str) -> None:
     print(f'Dataset generation finished within {elapsed_time}s')
 
 
-def update_graph(output_folder: str) -> None:
-    """
-    update the graph using saved feedback
+def update_graph(data_folder: str) -> None:
+    """Update the graph using saved feedback
 
-    WARNING: Running time depends on your computer. It varies from 20 second to 18 minutes.
+    WARNING: This function is very computationally heavy. Running time can vary from 20 second to
+    18 minutes depending on your computer.
     """
     small_graph = load_anime_graph_multiprocess(
-        output_folder + '/small.json', output_folder + '/feedback.json'
+        data_folder + '/small.json', data_folder + '/feedback.json'
     )
-    small_graph.serialize(output_folder + '/small_graph.json')
+    small_graph.serialize(data_folder + '/small_graph.json')
 
     full_graph = load_anime_graph_multiprocess(
-        output_folder + '/full.json', output_folder + '/feedback.json'
+        data_folder + '/full.json', data_folder + '/feedback.json'
     )
-    full_graph.serialize(output_folder + '/full_graph.json')
+    full_graph.serialize(data_folder + '/full_graph.json')
 
 
 if __name__ == '__main__':
@@ -95,3 +99,6 @@ if __name__ == '__main__':
         'allowed-io': ['parse_json', 'get_anime_description'],
         'max-nested-blocks': 4
     })
+
+    import python_ta.contracts
+    python_ta.contracts.check_all_contracts()
