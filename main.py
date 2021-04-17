@@ -11,6 +11,7 @@ from visualization import run_test_server
 if __name__ == '__main__':
     # To test generating dataset, uncomment the next line
     # generate_dataset('./data/original.json', 'data')
-    run_test_server()
     # To update the graph using user feedbacks, uncomment the next line
-    update_graph("data/")
+    # update_graph("data/")
+    run_test_server()
+
