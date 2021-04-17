@@ -95,7 +95,6 @@ class Anime:
 
     def insert_neighbour(self, anime: Anime) -> None:
         """Insert anime into self.neighbours according to similarity."""
-        # TODO: This method is not called anywhere in the program
         self.neighbours.append(anime)
         self.neighbours.sort(key=self.calculate_similarity, reverse=True)
         self.neighbours = self.neighbours[:NEIGHBOUR_LIMIT]
