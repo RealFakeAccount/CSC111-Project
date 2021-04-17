@@ -5,11 +5,6 @@ For more information on copyright for CSC111 materials,
 please do not consult the Course Syllabus.
 
 Copyright (c) 2021 by Ching Chang, Letian Cheng, Arkaprava Choudhury, Hanrui Fan
-
-TODO: Improve docstrings
-TODO: Custom errors
-TODO: Research efficiency / make more efficient implementation
-TODO: different levels of strictness
 """
 from __future__ import annotations
 from typing import Union
@@ -25,7 +20,7 @@ class Anime:
 
     Instance Attributes:
         - title: The title of the anime
-        - url: The url to the home page of the anime on http://myanimelist.net
+        - url: The url to the home page of the anime on an anime website. Ex. http://myanimelist.net
         - thumbnail: The url to the thumbnail of the anime
         - detail: The synopsis of the anime
         - neighbours: A list of anime that are similar to this anime
@@ -51,6 +46,7 @@ class Anime:
 
     def calculate_similarity(self, anime: Anime) -> float:
         """Calculate the similarity between this anime and the given anime.
+
         The similarity of two anime is defined to be the dot product of their TODO: of their what?
         Version 1: use numpy's dot product; assumes not many tags, so minimal error.
         Version 2: use self-defined functions to find dot product. Slower, but more reliable.
@@ -66,20 +62,21 @@ class Anime:
         return similarity
 
     def get_all_tags(self) -> set[str]:
-        """Return a set of all the tags associated with this anime
-        """
+        """Return a set of all the tags associated with this anime"""
         return set(self._tags)
 
     def get_tag_weight(self, tag: str) -> float:
-        """Return the weighting of the given tag in this anime
-        """
+        """Return the weighting of the given tag in this anime"""
         if tag in self._tags:
             return self._tags[tag]
         else:
             raise ValueError
 
     def adjust_tag_weighting(self, tag: str, scale: float) -> None:
-        """Set the weighting of a tag in this anime
+        """Adjust the weighting of a tag in this anime by the given scale
+
+        Scales larger than 1 increase the weighting; scales less than 1 decrease the weighting.
+        A scale of 1 does not change the weighting
         """
         if tag in self._tags:
             self._tags[tag] *= scale
@@ -138,8 +135,7 @@ class Anime:
 
 
 def _normalize_dict(values: dict[str, float]) -> None:
-    """
-    Mutate the values of dict such that the sum of the squares of all the values
+    """Mutate the values of dict such that the sum of the squares of all the values
     is NORMALIZATION_CONSTANT.
     """
     sum_of_squares = 0

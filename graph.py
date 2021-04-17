@@ -43,21 +43,21 @@ class Graph:
         Unlike adding an edge in a typical graph, we only add the given neighbour in the list of
         the given anime's neighbours, without adding the given anime in the list of the given
         neighbour's neighbours. This is because neighbours are sorted by the similarity.
+
         Add neighbour_title even if neighbour_title is not in self._anime, because we assume that
         neighbour_title will eventually be added to the graph, based on our data structure.
+
         Preconditions:
             - anime_title in self._anime
         """
         self._anime[anime_title].neighbours.append(self._anime[neighbour])
 
     def get_all_anime(self) -> list[str]:
-        """Return a list of all the anime in this graph
-        """
+        """Return a list of all the anime in this graph"""
         return list(self._anime)
 
     def get_anime_description(self, anime_title: str) -> str:
-        """Get the description/synopsis of the given anime
-        """
+        """Get the description/synopsis of the given anime"""
         if anime_title in self._anime:
             url = self._anime[anime_title].url
             page = requests.get(url, headers={
@@ -102,7 +102,7 @@ class Graph:
             raise ValueError
 
     def adjust_weighting_v1(self, anime_title: str, tag: str, reaction: str = 'upvote') -> None:
-        """
+        """TODO: docstring
         Note: this is a very inefficient operation.
         Preconditions:
             - reaction in {'upvote', 'downvote'} # decide on the name later
@@ -116,7 +116,9 @@ class Graph:
             raise ValueError
 
     def adjust_weighting(self, anime1: str, anime2: str, reaction: str = 'upvote') -> None:
-        """
+        """Based on the user's reaction of how good anime2 is as a recommendation of anime1,
+        adjust the tag weightings in anime1
+
         Preconditions:
             - reaction in {'upvote', 'downvote'}
         """
@@ -126,8 +128,8 @@ class Graph:
             raise ValueError
 
     def sort_neighbours_multiprocess(self) -> None:
-        """Calculate the similarity between each anime pair and add the neighbours for each anime
-        in descending order.
+        """Calculate and sort the similarity between each anime pair and add the neighbours
+        for each anime in descending order.
 
         This method is the same as self.calculate_neighbours, except that this method uses
         multiprocessing to speed up the process.
@@ -141,7 +143,8 @@ class Graph:
         self._anime = {anime_list[i].title: res[i] for i in range(0, len(anime_list))}
 
     def _sort_neighbours(self, anime: Anime) -> Anime:
-        """Add the neighbours for each anime.
+        """Sort and reassigns the neighbours of the given anime and return the anime
+
         Warning: this method uses heavy computation and initializes the edges between anime.
         It is not meant to be accessible when the user's session is ongoing, and should only be
         used when the user quits their session.
@@ -154,8 +157,7 @@ class Graph:
         return anime
 
     def serialize(self, output_file: str) -> None:
-        """Save the neighbours of each Anime in this graph into an output file
-        """
+        """Save the data of each Anime in this graph into an output file"""
         neighbours = {}
 
         for anime_name in self._anime:
@@ -176,8 +178,7 @@ class Graph:
 
     def prediction(self, past_choices: list[list[Anime]], options: list[Anime],
                    curr_anime: str) -> list[Anime]:
-        """
-        Return a prediction of which anime in options the user is likely to choose, given all
+        """ Return a prediction of which anime in options the user is likely to choose, given all
         previous choices made and the current anime.
 
         Preconditions:
@@ -251,7 +252,7 @@ class Graph:
             raise ValueError
 
     def add_connection(self, graph: nx.Graph(), cur_anime_title: str, det_anime_title: str) -> None:
-        """Add one edge to a given graph
+        """Add an edge to a given networkx graph
         Preconditions:
             - cur_anime_tile in self._anime
             - det_anime_tile not in self._anime
@@ -296,7 +297,8 @@ class Graph:
 
     def draw_graph(self, anime_title: str, depth: int, limit: int) -> plotly.graph_objs.Figure():
         """Draw a plotly graph centered around the given anime title
-        Preconditions,:
+
+        Preconditions:
             - depth <= 5 # This will be handled by the slider on the website
         """
         graph_layout = plotly.graph_objs.Layout(
@@ -323,7 +325,6 @@ class Graph:
                     if cur[1] < depth - 1:
                         queue.append((i.title, cur[1] + 1))
 
-
         if shell[0] != shell[1]:
             nxg = nx.drawing.layout.spring_layout(graph)
         else:
@@ -337,7 +338,6 @@ class Graph:
             )
             figure = plotly.graph_objs.Figure(data=single_node, layout=graph_layout)
             return figure
-
 
         x_node_pos = [nxg[key][0] for key in graph.nodes if key != anime_title]
         y_node_pos = [nxg[key][1] for key in graph.nodes if key != anime_title]
@@ -394,16 +394,18 @@ class Graph:
 
         figure = plotly.graph_objs.Figure(data=all_traces, layout=graph_layout)
 
-
         return figure
 
-    def get_anime(self, title: str) -> Anime:
+    def get_anime(self, anime_title: str) -> Anime:
         """Return the _anime attribute of the graph"""
-        return self._anime.get(title)
+        if anime_title in self._anime:
+            return self._anime[anime_title]
+        else:
+            raise ValueError
 
-    def store_feedback(self, reaction: str, curr_anime: Anime, feedback_anime: Anime) -> None:
-        """
-        Store the user's feedback
+    def store_feedback(self, reaction: str, curr_anime: str, feedback_anime: str) -> None:
+        """Store the user's feedback to this graph
+
         Preconditions:
             - curr_anime in self._anime
             - feedback_anime in self._anime
@@ -412,26 +414,24 @@ class Graph:
         self._feedback.append((curr_anime, feedback_anime, reaction))
 
     def dump_feedback_to_file(self, output_file: str) -> None:
-        """Save the feedback to file
-        """
+        """Save the user feedback to an output file"""
         _feedback: list[tuple[Anime, Anime, str]]
-        feedback = {}
+        feedbacks = {}
 
-        cnt = 0
+        counter = 0
         for item in self._feedback:
-            feedback[cnt] = {
+            feedbacks[counter] = {
                 'anime1': item[0].title,
                 'anime2': item[1].title,
                 'value': item[2]
             }
-            cnt += 1
+            counter += 1
 
         with open(output_file, 'w') as new_file:
-            json.dump(feedback, new_file)
+            json.dump(feedbacks, new_file)
 
     def implement_feedback(self) -> None:
-        """
-        Mutate the anime in self._anime according to the feedback received.
+        """Mutate the anime in self._anime according to the feedback received.
         This method also mutates self._feedback so that, by the time this function has finished
         executing, self._feedback is empty.
         """
@@ -467,8 +467,14 @@ def load_from_serialized_data(file_name: str) -> Graph:
 
 def load_anime_graph_multiprocess(file_name: str, feedback: str = '') -> Graph:
     """Return the anime graph corresponding to the given dataset
-    WARNING: This may absolutely wreck your device. For context, on the full dataset, it takes
-    about 17s using 3900x.
+
+    WARNING: This function is very computationally heavy. Running time can vary from 20 second to
+    18 minutes depending on your computer. When running this with the full dataset on a 2015 MacBook
+    Air, it overheated and got the fan running at full speed for 8 minutes before we decided to stop
+    the process :(
+
+    For another context: it takes about 17s using 3900x.
+
     Preconditions:
         - file_name is the path to a json file corresponding to the anime data
         format described in the project report
@@ -486,8 +492,8 @@ def load_anime_graph_multiprocess(file_name: str, feedback: str = '') -> Graph:
             for item in data:
                 anime_graph.store_feedback(
                     item['value'],
-                    anime_graph.get_anime(item['anime1']),
-                    anime_graph.get_anime(item['anime2'])
+                    item['anime1'],
+                    item['anime2']
                 )
 
     anime_graph.implement_feedback()

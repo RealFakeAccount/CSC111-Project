@@ -14,4 +14,3 @@ if __name__ == '__main__':
     # To update the graph using user feedbacks, uncomment the next line
     # update_graph("data/")
     run_test_server()
-
