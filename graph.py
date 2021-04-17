@@ -329,7 +329,8 @@ class Graph:
             height=1080
         )
 
-        visited = set(anime_title)
+        visited = set()
+        visited.add(anime_title)
         graph = nx.Graph()
         shell = [[anime_title], []]  # [[center of graph], [other nodes]]
         queue = [(anime_title, 0)]  # title, depth
