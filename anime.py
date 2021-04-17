@@ -21,8 +21,7 @@ NEIGHBOUR_LIMIT = 20
 
 
 class Anime:
-    """
-    Represents a node in the graph structure, i.e. represents data about a single anime
+    """Represents an Anime as a vertex in the Anime graph
 
     Instance Attributes:
         - title: The title of the anime
@@ -52,7 +51,7 @@ class Anime:
 
     def calculate_similarity(self, anime: Anime) -> float:
         """Calculate the similarity between this anime and the given anime.
-        The similarity of two anime is defined to be the dot product of their
+        The similarity of two anime is defined to be the dot product of their TODO: of their what?
         Version 1: use numpy's dot product; assumes not many tags, so minimal error.
         Version 2: use self-defined functions to find dot product. Slower, but more reliable.
         """
@@ -67,14 +66,12 @@ class Anime:
         return similarity
 
     def get_all_tags(self) -> set[str]:
-        """
-        Return the set of every tag associated with this anime
+        """Return a set of all the tags associated with this anime
         """
         return set(self._tags)
 
     def get_tag_weight(self, tag: str) -> float:
-        """
-        Return the tags and their weights attached to this anime.
+        """Return the weighting of the given tag in this anime
         """
         if tag in self._tags:
             return self._tags[tag]
@@ -82,7 +79,7 @@ class Anime:
             raise ValueError
 
     def set_tag_weighting(self, tag: str, new_weighting: float) -> None:
-        """Set the weighting of a tag in self.tags
+        """Set the weighting of a tag in this anime
         """
         if tag in self._tags:
             self._tags[tag] = new_weighting
@@ -98,6 +95,7 @@ class Anime:
 
     def insert_neighbour(self, anime: Anime) -> None:
         """Insert anime into self.neighbours according to similarity."""
+        # TODO: This method is not called anywhere in the program
         self.neighbours.append(anime)
         self.neighbours.sort(key=self.calculate_similarity, reverse=True)
         self.neighbours = self.neighbours[:NEIGHBOUR_LIMIT]
@@ -114,29 +112,23 @@ class Anime:
 
         # self.neighbours.insert(n, anime)
 
-    def adjust_negative_feedback(self, anime: Anime) -> None:
-        """
-        Readjust the weightings upon receiving negative feedback for similarity with anime.
+    def adjust_from_feedback(self, anime: Anime, feedback: str) -> None:
+        """Readjust the weightings upon receiving a feedback for similarity with anime.
+
+        Preconditions:
+            - feedback in {'upvote', 'downvote'}
         """
         for tag in self._tags:
             if tag in anime._tags:
-                self._tags[tag] = self._tags[tag] * 0.9
+                if feedback == 'upvote':
+                    self._tags[tag] = self._tags[tag] * 1.1
+                else:
+                    self._tags[tag] = self._tags[tag] * 0.9
 
         _normalize_dict(self._tags)
 
-    def adjust_positive_feedback(self, anime: Anime) -> None:
-        """
-        Readjust the weightings upon receiving positive feedback for similarity with anime.
-        """
-        for tag in self._tags:
-            if tag in anime._tags:
-                self._tags[tag] = self._tags[tag] * 1.1
-
-        _normalize_dict(self._tags)
-
-    def prediction_similarity(self, prediction_weights: dict[str, float]) -> float:
-        """
-        Return how likely the user is to pick anime. This is NOT a measure of probability, and
+    def predict_similarity(self, prediction_weights: dict[str, float]) -> float:
+        """Return how likely the user is to pick anime. This is NOT a measure of probability, and
         is hence not normalized.
         """
         sum_so_far = 0
