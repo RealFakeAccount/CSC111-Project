@@ -20,11 +20,11 @@ MAX_HISTORY_LIMIT = 10
 
 class Graph:
     """A graph of anime to represent the popularity and similarity network
-
-    Private Instance Attributes:
-        - _anime: A collection of the anime contained in this graph
-        - _feedback: A list of tuples containing users' feedback
     """
+
+    # Private Instance Attributes:
+    #   - _anime: A collection of the anime contained in this graph
+    #   - _feedback: A list of tuples containing users' feedback
     _anime: dict[str, Anime]
     _feedback: list[tuple[str, str, str]]
 
@@ -43,10 +43,8 @@ class Graph:
         Unlike adding an edge in a typical graph, we only add the given neighbour in the list of
         the given anime's neighbours, without adding the given anime in the list of the given
         neighbour's neighbours. This is because neighbours are sorted by the similarity.
-
         Add neighbour_title even if neighbour_title is not in self._anime, because we assume that
         neighbour_title will eventually be added to the graph, based on our data structure.
-
         Preconditions:
             - anime_title in self._anime
         """
@@ -93,15 +91,6 @@ class Graph:
             return thumbnail_url
         else:
             return 'Anime title not found'
-    
-    def get_anime_thumbnail_url(self, anime_title: str) -> str:
-        """Get the thumbnail_url of the given anime
-        """
-        if anime_title in self._anime:
-            thumbnail_url = self._anime[anime_title].thumbnail
-            return thumbnail_url
-        else:
-            return 'Anime title not found'
 
     def get_similarity(self, anime1: str, anime2: str) -> float:
         """Return the similarity between anime1 and anime2.
@@ -113,8 +102,9 @@ class Graph:
             raise ValueError
 
     def _insert_neighbour(self, anime1: str, anime2: str) -> None:
-        """Insert anime2 into anime1.neighbours based on the similarity of anime2 with anime1
-        TODO: This method is not called anywhere in the program
+        """Insert anime2 into anime1.neighbours based on the similarity of anime2 with anime1.
+        One of the prototype methods that we explored to add neighbours (and consequently, edges) to
+        our graph, which was eventually never used in favour of faster methods.
         Consequently, Anime.insert_neighbour is never used either
         """
         if anime1 in self._anime and anime2 in self._anime:
@@ -123,8 +113,13 @@ class Graph:
             raise ValueError
 
     def adjust_weighting_v1(self, anime_title: str, tag: str, reaction: str = 'upvote') -> None:
-        """TODO: docstring
-        Note: this is a very inefficient operation.
+        """Change the weighting of tag in anime_title based on the user reaction.
+
+        A first attempt at adjusting the weighting of anime based on user reactions. This method
+        worked on changing the weighting of a single tag in an anime, and, once we found an
+        alternative, we stopped using this method. We decided to keep this method in the final
+        version of the program to display our thought process, for posterity.
+
         Preconditions:
             - reaction in {'upvote', 'downvote'} # decide on the name later
             - anime in self._anime
@@ -139,7 +134,6 @@ class Graph:
     def adjust_weighting(self, anime1: str, anime2: str, reaction: str = 'upvote') -> None:
         """Based on the user's reaction of how good anime2 is as a recommendation of anime1,
         adjust the tag weightings in anime1
-
         Preconditions:
             - reaction in {'upvote', 'downvote'}
         """
@@ -151,7 +145,6 @@ class Graph:
     def sort_neighbours_multiprocess(self) -> None:
         """Calculate and sort the similarity between each anime pair and add the neighbours
         for each anime in descending order.
-
         This method is the same as self.calculate_neighbours, except that this method uses
         multiprocessing to speed up the process.
         """
@@ -165,11 +158,9 @@ class Graph:
 
     def _sort_neighbours(self, anime: Anime) -> Anime:
         """Sort and reassigns the neighbours of the given anime and return the anime
-
         Warning: this method uses heavy computation and initializes the edges between anime.
         It is not meant to be accessible when the user's session is ongoing, and should only be
         used when the user quits their session.
-
         Preconditions:
             - anime in self._anime
         """
@@ -201,7 +192,6 @@ class Graph:
                    curr_anime: str) -> list[Anime]:
         """ Return a prediction of which anime in options the user is likely to choose, given all
         previous choices made and the current anime.
-
         Preconditions:
             - all(len(lst) == 2 for lst in past_choices)
         """
@@ -216,7 +206,6 @@ class Graph:
     def store_history(self, curr_anime: str, rec_anime: str, store_file: str) -> None:
         """Store which anime the user searched for (curr_anime), and which anime they visited out
         of the recommendations (rec_anime) in the json file store_file.
-
         Preconditions:
             - curr_anime in self._anime and rec_anime in self._graph
             - store_file is a json file storing a single list argument
@@ -236,10 +225,8 @@ class Graph:
     def _get_prediction_weights(self, curr_anime: str, past_choices: list[list[Anime]]) \
             -> dict[str, float]:
         """Get the weightings required to make the predictions
-
         For each list lst in past_choices, lst[0] denotes an anime that the user searched for, while
         lst[1] denotes the anime that the user clicked on next.
-
         Preconditions:
             - all(len(lst) == 2 for lst in past_choices)
         """
@@ -286,8 +273,8 @@ class Graph:
             raise ValueError
 
     def _get_all_edges_pos(self, graph: nx.Graph, nxg: dict) -> tuple[
-            list[list], list[list], tuple[list[Optional[float]], list[Optional[float]]], list[
-                Optional[str]]]:
+        list[list], list[list], tuple[list[Optional[float]], list[Optional[float]]], list[
+            Optional[str]]]:
         """Get all edges position in networkx graph and return a tuple of edges position in x-y
         dimension
         """
@@ -311,14 +298,11 @@ class Graph:
 
             edge_similarity.extend(
                 [f'Similarity Score: {edge_sim} Between {edge[0]} and {edge[1]}', None])
-            # TODO Need to be checked, this is real time calculation and needs to consider load
-            #  static similarity data
 
         return (x_edge_pos, y_edge_pos, (x_mid_pos, y_mid_pos), edge_similarity)
 
     def draw_graph(self, anime_title: str, depth: int, limit: int) -> plotly.graph_objs.Figure():
         """Draw a plotly graph centered around the given anime title
-
         Preconditions:
             - depth <= 5 # This will be handled by the slider on the website
         """
@@ -427,7 +411,6 @@ class Graph:
 
     def store_feedback(self, reaction: str, curr_anime: str, feedback_anime: str) -> None:
         """Store the user's feedback to this graph
-
         Preconditions:
             - curr_anime in self._anime
             - feedback_anime in self._anime
@@ -489,14 +472,11 @@ def load_from_serialized_data(file_name: str) -> Graph:
 
 def load_anime_graph_multiprocess(file_name: str, feedback: str = '') -> Graph:
     """Return the anime graph corresponding to the given dataset
-
     WARNING: This function is very computationally heavy. Running time can vary from 20 second to
     18 minutes depending on your computer. When running this with the full dataset on a 2015 MacBook
     Air, it overheated and got the fan running at full speed for 8 minutes before we decided to stop
     the process :(
-
     For another context: it takes about 17s using 3900x.
-
     Preconditions:
         - file_name is the path to a json file corresponding to the anime data
         format described in the project report
@@ -524,6 +504,9 @@ def load_anime_graph_multiprocess(file_name: str, feedback: str = '') -> Graph:
 
 
 if __name__ == "__main__":
+
+    # This code was used to check whether our program worked and whether it worked in a reasonable
+    # period of time.
     # import time
     # t = time.process_time()
     # graph = load_from_serialized_data("data/full_graph.json")
