@@ -420,14 +420,13 @@ class Graph:
 
     def dump_feedback_to_file(self, output_file: str) -> None:
         """Save the user feedback to an output file"""
-        _feedback: list[tuple[Anime, Anime, str]]
         feedbacks = {}
 
         counter = 0
         for item in self._feedback:
             feedbacks[counter] = {
-                'anime1': item[0].title,
-                'anime2': item[1].title,
+                'anime1': item[0],
+                'anime2': item[1],
                 'value': item[2]
             }
             counter += 1
@@ -493,9 +492,9 @@ def load_anime_graph_multiprocess(file_name: str, feedback: str = '') -> Graph:
             data = json.load(json_file)
             for item in data:
                 anime_graph.store_feedback(
-                    item['value'],
-                    item['anime1'],
-                    item['anime2']
+                    data[item]['value'],
+                    data[item]['anime1'],
+                    data[item]['anime2']
                 )
 
     anime_graph.implement_feedback()
