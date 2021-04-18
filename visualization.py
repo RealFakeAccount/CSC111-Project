@@ -5,19 +5,21 @@ For more information on copyright for CSC111 materials, please consult the Cours
 
 Copyright (c) 2021 by Ching Chang, Letian Cheng, Arkaprava Choudhury, Hanrui Fan
 """
+import json
+import os
 from typing import Optional, Any
 import dash
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
-import graph
 from anime import Anime
+import graph
+
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = 'Animmend'
 feedback = {}  # {('anime1', 'anime2'): (upvote, downvote)}
-core, hover = '40meterP: Color of Drops', None  # the current graph shell and current hover anime
 
 full_graph = graph.load_from_serialized_data('data/full_graph.json')
 
@@ -92,7 +94,7 @@ app.layout = html.Div(children=ele)
 def upvote_downvote(upvote_times: int, downvote_times: int) -> str:
     """Send the feedback to graph object whenever we receive one
     """
-    global hover, core
+    hover, core = read_hover('.')
     if hover is not None:
         edge = (hover, core) if hover < core else (core, hover)
         prev = feedback.get(edge, (0, 0))
@@ -132,13 +134,14 @@ def update_graph(name: str, depth: int, neighbour: int) -> tuple[Anime, str]:
 def update_name(click_data: dict[str, Any], name: str) -> tuple[None, str]:
     """change the graph based on the user click input
     """
-    global hover, core
+    hover, core = '', '40meterP: Color of Drops'
     if click_data is not None and 'hovertext' not in click_data['points'][0]:  # deal with edge
         return None, name
     if click_data is not None and 'Similarity Score' not in click_data['points'][0]['hovertext'] \
             and click_data['points'][0]['hovertext'] != name:
         name = click_data['points'][0]['hovertext']
     core = name
+    write_hover('.', hover, core)
     return None, name
 
 
@@ -156,23 +159,26 @@ def update_description(hover_data: dict[str, Any], description: str, thumbnail: 
                        pic_title: str) -> tuple[None, str, Optional[str], str]:
     """change the description based on the user hover input
     """
-    global hover, core
+    hover, core = '', '40meterP: Color of Drops'
     if hover_data is None:
         return None, 'Waiting for hover...', None, 'Waiting for hover...'
 
     if 'hovertext' not in hover_data['points'][0]:  # deal with edge
         hover = None
+        write_hover('.', hover, core)
         return None, description, thumbnail, pic_title
 
     anime_title = hover_data['points'][0]['hovertext']
     if 'Similarity Score' not in anime_title:
         description = full_graph.get_anime_description(anime_title)
         hover = anime_title
+        write_hover('.', hover, core)
         thumbnail = full_graph.get_anime_thumbnail_url(anime_title)
         pic_title = anime_title
         return None, description, thumbnail, pic_title
     elif 'Similarity Score' in anime_title:
         hover = None
+        write_hover('.', hover, core)
         return None, 'The point you hovered is Similarity Score.', thumbnail, pic_title
     else:
         return None, '', None, ''
@@ -184,8 +190,35 @@ def run_test_server() -> None:
     app.run_server(debug=True)
 
 
+def write_hover(data_folder: str, hover: str, core: str) -> None:
+    """Let's get things complicated by not using global variables :)
+    This function save the global variable into a file:
+    hover -- the user's hover node;
+    core -- the current center of the graph
+    """
+    path_str = data_folder + '/_tmp'
+    with open(path_str, 'w') as new_file:
+        json.dump({'hover': hover, 'core': core}, new_file)
+
+
+def read_hover(data_folder: str) -> tuple[str, str]:
+    """Let's get things complicated by not using global variables :)
+    This function read the global variable into a file:
+    hover -- the user's hover node;
+    core -- the current center of the graph
+    """
+    hover, core = '', '40meterP: Color of Drops'
+    path_str = data_folder + '/_tmp'
+    if not os.path.exists(path_str):
+        return hover, core
+    with open(path_str, 'r') as json_file:
+        data = json.load(json_file)
+        hover, core = data['hover'], data['core']
+    return hover, core
+
+
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    # app.run_server(debug=True)
 
     import python_ta
     python_ta.check_all(config={

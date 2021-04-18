@@ -77,11 +77,6 @@ def update_graph(data_folder: str) -> None:
     WARNING: This function is very computationally heavy. Running time can vary from 20 second to
     18 minutes depending on your computer.
     """
-    small_graph = load_anime_graph_multiprocess(
-        data_folder + '/small.json', data_folder + '/feedback.json'
-    )
-    small_graph.serialize(data_folder + '/small_graph.json')
-
     full_graph = load_anime_graph_multiprocess(
         data_folder + '/full.json', data_folder + '/feedback.json'
     )
