@@ -3,7 +3,6 @@ This file is provided for whichever TA is grading and giving us 100.
 Forms of distribution of this code are allowed.
 For more information on copyright for CSC111 materials,
 please do not consult the Course Syllabus.
-
 Copyright (c) 2021 by Ching Chang, Letian Cheng, Arkaprava Choudhury, Hanrui Fan
 """
 from __future__ import annotations
@@ -17,16 +16,12 @@ NEIGHBOUR_LIMIT = 20
 
 class Anime:
     """Represents an Anime as a vertex in the Anime graph
-
     Instance Attributes:
         - title: The title of the anime
         - url: The url to the home page of the anime on an anime website. Ex. http://myanimelist.net
         - thumbnail: The url to the thumbnail of the anime
         - detail: The synopsis of the anime
         - neighbours: A list of anime that are similar to this anime
-
-    Private Instance Attributes:
-        - _tags: A dictionary mapping each tag of the anime to a weighting from 0 to 1 (inclusive)
     """
 
     title: str
@@ -34,6 +29,9 @@ class Anime:
     thumbnail: str
     detail: str
     neighbours: list[Anime]
+
+    # Private Instance Attributes:
+    #   - _tags: A dictionary mapping each tag of the anime to a weighting from 0 to 1 (inclusive)
     _tags: dict[str, float]
 
     def __init__(self, data: dict[str, Union[str, list[str]]]) -> None:
@@ -47,9 +45,10 @@ class Anime:
     def calculate_similarity(self, anime: Anime) -> float:
         """Calculate the similarity between this anime and the given anime.
 
-        The similarity of two anime is defined to be the dot product of their TODO: of their what?
-        Version 1: use numpy's dot product; assumes not many tags, so minimal error.
-        Version 2: use self-defined functions to find dot product. Slower, but more reliable.
+        The similarity of two anime is defined to be the sum of the product of the weightings of the
+        tags that they have in common. This is analogous to the dot product of two vectors, and,
+        indeed, if we were using lists to represent the tags' weightings like mentioned in the
+        project proposal, we could use numpy's in-built dot product.
         """
         vector_1, vector_2 = self._tags.keys(), anime._tags.keys()
 
@@ -74,7 +73,6 @@ class Anime:
 
     def adjust_tag_weighting(self, tag: str, scale: float) -> None:
         """Adjust the weighting of a tag in this anime by the given scale
-
         Scales larger than 1 increase the weighting; scales less than 1 decrease the weighting.
         A scale of 1 does not change the weighting
         """
@@ -92,10 +90,12 @@ class Anime:
 
     def insert_neighbour(self, anime: Anime) -> None:
         """Insert anime into self.neighbours according to similarity."""
+        # VERSION 1.
         self.neighbours.append(anime)
         self.neighbours.sort(key=self.calculate_similarity, reverse=True)
         self.neighbours = self.neighbours[:NEIGHBOUR_LIMIT]
 
+        # VERSION 2.
         # if self.neighbours == []:
         #     self.neighbours.append(anime)
         #     return None
@@ -110,7 +110,6 @@ class Anime:
 
     def adjust_from_feedback(self, anime: Anime, feedback: str) -> None:
         """Readjust the weightings upon receiving a feedback for similarity with anime.
-
         Preconditions:
             - feedback in {'upvote', 'downvote'}
         """
@@ -151,7 +150,6 @@ def _initialize_tags(tags: list[str]) -> dict[str, float]:
     """
     Given a list of tags, return a dict with <tag>:<value> pairs such that the values corresponding
     to each tag are the same and the sum of the squares of values is  NORMALIZATION_SCALE.
-
     This is used to initialize the tags in anime so that they all have the same weight.
     """
     anime_tags = {}
